@@ -69,7 +69,7 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 }
 
 // IsIPAddress checks if the provided string is an IP address.
-func IsIPAddress(str string) bool {
+func IsIP(str string) bool {
 	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
 	match, _ := regexp.MatchString(ipPattern, str)
 	return match
