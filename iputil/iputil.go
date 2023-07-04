@@ -68,6 +68,11 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 	return ips, nil
 }
 
+// IsValidNetworkInput checks if the provided string is a valid IP address, CIDR or IP range.
+func IsValidNetworkInput(str string) bool {
+	return IsIP(str) || IsCIDR(str) || IsIPRange(str)
+}
+
 // IsIPAddress checks if the provided string is an IP address.
 func IsIP(str string) bool {
 	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
