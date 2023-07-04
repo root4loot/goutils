@@ -3,6 +3,7 @@ package netip
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -65,6 +66,13 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 	}
 
 	return ips, nil
+}
+
+// IsIPAddress checks if the provided string is an IP address.
+func IsIPAddress(str string) bool {
+	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
+	match, _ := regexp.MatchString(ipPattern, str)
+	return match
 }
 
 // IsValidIP checks if the provided IP address is valid.
