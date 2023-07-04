@@ -102,11 +102,17 @@ func IsValidIPRange(ipRange string) bool {
 		return false
 	}
 
-	startIP := net.ParseIP(parts[0])
-	endIP := net.ParseIP(parts[1])
-
-	if startIP == nil || endIP == nil {
+	startIP := net.ParseIP(strings.TrimSpace(parts[0]))
+	if startIP == nil {
 		return false
+	}
+
+	endIP := net.ParseIP(strings.TrimSpace(parts[1]))
+	if endIP == nil {
+		endIP = net.ParseIP(strings.TrimSpace(parts[0])) // Treat it as a single IP
+		if endIP == nil {
+			return false
+		}
 	}
 
 	start := ipToUint32(startIP)
