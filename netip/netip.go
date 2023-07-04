@@ -75,6 +75,13 @@ func IsIP(str string) bool {
 	return match
 }
 
+// IsCIDR checks if the provided string is a CIDR.
+func IsCIDR(str string) bool {
+	cidrPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$`
+	match, _ := regexp.MatchString(cidrPattern, str)
+	return match
+}
+
 // IsValidIP checks if the provided IP address is valid.
 func IsValidIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
