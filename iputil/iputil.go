@@ -1,4 +1,4 @@
-package netip
+package iputil
 
 import (
 	"fmt"
