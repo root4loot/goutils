@@ -170,22 +170,8 @@ func IsPublicIP(ip string) bool {
 // IsIPInCIDR checks if the provided IP address is within the provided CIDR.
 func IsIPInCIDR(ip string, cidr string) (bool, error) {
 	ipAddr := net.ParseIP(ip)
-	if ipAddr == nil {
-		return false, fmt.Errorf("invalid IP address: %s", ip)
-	}
-
-	ips, err := ParseCIDR(cidr)
-	if err != nil {
-		return false, err
-	}
-
-	for _, addr := range ips {
-		if addr.Equal(ipAddr) {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	_, network, err := net.ParseCIDR(cidr)
+	return err == nil && network.Contains(ipAddr), err
 }
 
 // IsIPInRange checks if the provided IP address is within the provided IP range.
