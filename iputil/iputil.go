@@ -87,9 +87,9 @@ func IsCIDR(str string) bool {
 	return match
 }
 
-// IsIPRange checks if the provided string is an IP range.
+// IsIPRange checks if the provided string is a valid IP range.
 func IsIPRange(str string) bool {
-	ipRangePattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
+	ipRangePattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}(\.\d{1,3}){0,3}$`
 	match, _ := regexp.MatchString(ipRangePattern, str)
 	return match
 }
