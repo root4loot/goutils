@@ -192,7 +192,7 @@ func IsIPInRange(ip string, ipRange string) (bool, error) {
 		}
 	}
 
-	return false, nil
+	return false, err
 }
 
 // calculateEndIP calculates the end IP address based on the start IP address and the increment.
