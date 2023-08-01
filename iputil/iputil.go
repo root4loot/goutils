@@ -69,9 +69,9 @@ func IsValidNetworkInput(str string) bool {
 	return IsIP(str) || IsCIDR(str) || IsIPRange(str)
 }
 
-// IsIPAddress checks if the provided string is an IP address.
+// IsIPAddress checks if the provided string is an IP address with optional port.
 func IsIP(str string) bool {
-	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
+	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$`
 	match, _ := regexp.MatchString(ipPattern, str)
 	return match
 }
