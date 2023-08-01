@@ -36,14 +36,10 @@ func ParseIPRange(ipRange string) ([]net.IP, error) {
 
 	var ips []net.IP
 	ip := startIP
-	for {
+	for ipLessThan(ip, endIP) {
 		clone := make(net.IP, len(ip))
 		copy(clone, ip)
 		ips = append(ips, clone)
-
-		if ip.Equal(endIP) {
-			break
-		}
 
 		inc(ip)
 	}
@@ -195,24 +191,28 @@ func IsIPInRange(ip string, ipRange string) (bool, error) {
 	return false, err
 }
 
-// calculateEndIP calculates the end IP address based on the start IP address and the increment.
-func calculateEndIP(startIP net.IP, inc int) net.IP {
-	ip := make(net.IP, len(startIP))
-	copy(ip, startIP)
+// calculateEndIP calculates the end IP address based on the given increment value.
+func calculateEndIP(startIP net.IP, increment int) net.IP {
+	endIP := make(net.IP, len(startIP))
+	copy(endIP, startIP)
 
-	for i := len(ip) - 1; i >= 0; i-- {
-		if inc > 0 {
-			add := byte(inc % 256)
-			ip[i] += add
-			inc /= 256
-
-			if ip[i] < add {
-				inc++
-			}
-		}
+	for i := len(endIP) - 1; i >= 0; i-- {
+		sum := int(endIP[i]) + increment
+		endIP[i] = byte(sum)
+		increment = sum >> 8
 	}
 
-	return ip
+	return endIP
+}
+
+// ipLessThan checks if the first IP is less than the second IP.
+func ipLessThan(ip1, ip2 net.IP) bool {
+	return bytesCompare(ip1, ip2) < 0
+}
+
+// ipLessThanOrEqual checks if the first IP is less than or equal to the second IP.
+func ipLessThanOrEqual(ip1, ip2 net.IP) bool {
+	return bytesCompare(ip1, ip2) <= 0
 }
 
 // ipToUint32 converts an IP address to a uint32.
@@ -226,7 +226,36 @@ func uint32ToIP(ip uint32) net.IP {
 	return net.IPv4(byte(ip>>24), byte(ip>>16), byte(ip>>8), byte(ip))
 }
 
-// inc increments the provided IP address.
+// ipGreaterThan checks if the first IP is greater than the second IP.
+func ipGreaterThan(ip1, ip2 net.IP) bool {
+	return bytesCompare(ip1, ip2) > 0
+}
+
+// bytesCompare compares two byte slices lexicographically.
+func bytesCompare(a, b []byte) int {
+	lenA, lenB := len(a), len(b)
+	for i := 0; i < lenA && i < lenB; i++ {
+		if a[i] != b[i] {
+			if a[i] < b[i] {
+				return -1
+			}
+			return 1
+		}
+	}
+	if lenA == lenB {
+		return 0
+	} else if lenA < lenB {
+		return -1
+	}
+	return 1
+}
+
+// ipEqual checks if two IP addresses are equal.
+func ipEqual(ip1, ip2 net.IP) bool {
+	return ip1.Equal(ip2)
+}
+
+// inc increments the IP address.
 func inc(ip net.IP) {
 	for j := len(ip) - 1; j >= 0; j-- {
 		ip[j]++
