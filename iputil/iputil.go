@@ -3,6 +3,7 @@ package iputil
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +75,39 @@ func IsIP(str string) bool {
 	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$`
 	match, _ := regexp.MatchString(ipPattern, str)
 	return match
+}
+
+// IsURLIP checks if the provided string is a URL with an IP address.
+func IsURLIP(str string) bool {
+	parsedURL, err := url.Parse(str)
+	if err != nil {
+		return false // Return false if the URL parsing fails
+	}
+
+	host := parsedURL.Hostname()
+	if host == "" {
+		return false // Return false if the hostname is empty
+	}
+
+	// Check if the host is a valid IP address (IPv4 or IPv6)
+	if net.ParseIP(host) != nil {
+		return true
+	}
+
+	// If the host is not a valid IP address, check if it has a port
+	if strings.Contains(host, ":") {
+		host, _, err = net.SplitHostPort(host)
+		if err != nil {
+			return false // Return false if there is an error splitting the host and port
+		}
+
+		// Check if the modified host is a valid IP address (IPv4 or IPv6)
+		if net.ParseIP(host) != nil {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsCIDR checks if the provided string is a CIDR.
