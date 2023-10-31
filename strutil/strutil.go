@@ -18,3 +18,18 @@ func Contains(list interface{}, item interface{}) bool {
 
 	return false
 }
+
+// appendUnique appends unique strings from elems to slice, avoiding duplicates.
+func AppendUnique(slice []string, elems ...string) []string {
+	uniqueMap := make(map[string]bool)
+	for _, v := range slice {
+		uniqueMap[v] = true
+	}
+	for _, e := range elems {
+		if !uniqueMap[e] {
+			slice = append(slice, e)
+			uniqueMap[e] = true
+		}
+	}
+	return slice
+}
