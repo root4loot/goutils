@@ -1,0 +1,47 @@
+package fileutil
+
+import (
+	"encoding/json"
+	"os"
+)
+
+// SerializeToFile serializes data to a JSON file.
+func SerializeToFile(filePath string, data interface{}) error {
+	// Convert struct to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Create or open file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write JSON data to file
+	err = os.WriteFile(filePath, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeserializeFromFile deserializes data from a JSON file.
+func DeserializeFromFile(filePath string, data interface{}) error {
+	// Read file
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// Parse JSON data into struct
+	err = json.Unmarshal(fileData, &data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
