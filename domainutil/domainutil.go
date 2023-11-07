@@ -3,6 +3,7 @@ package domainutil
 import (
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 // IsDomainName checks if a string is a valid domain name.
@@ -22,4 +23,31 @@ func IsValidDomain(domain string) bool {
 
 	// Check if the host is non-empty and there's no Path or RawQuery
 	return u.Host != "" && u.Path == "" && u.RawQuery == ""
+}
+
+// GetDomainRoot returns the root domain of a domain
+func GetDomainRoot(domain string) string {
+	r, _ := regexp.Compile(`\w+\.\w+$`)
+	m := r.FindString(domain)
+	return strings.ToLower(m)
+}
+
+// DomainRoots returns a list of unique root domains for a slice of domains
+func DomainRoots(items []string) (roots []string) {
+	for _, item := range items {
+		root := GetDomainRoot(item)
+		roots = append(roots, root)
+	}
+	return unique(roots)
+}
+
+func unique(items []string) (uniqueItems []string) {
+	uniqueMap := make(map[string]bool)
+	for _, item := range items {
+		uniqueMap[item] = true
+	}
+	for item := range uniqueMap {
+		uniqueItems = append(uniqueItems, item)
+	}
+	return
 }
