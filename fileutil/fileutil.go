@@ -1,7 +1,9 @@
 package fileutil
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -44,4 +46,23 @@ func DeserializeFromFile(filePath string, data interface{}) error {
 	}
 
 	return nil
+}
+
+// ReadFile reads a file and returns a slice of strings representing lines.
+func ReadFile(fp string) ([]string, error) {
+	readFile, err := os.Open(fp)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %w", err)
+	}
+	defer readFile.Close()
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+	var fileLines []string
+
+	for fileScanner.Scan() {
+		fileLines = append(fileLines, fileScanner.Text())
+	}
+
+	return fileLines, nil
 }
