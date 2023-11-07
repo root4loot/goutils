@@ -78,36 +78,36 @@ func IsIP(str string) bool {
 }
 
 // IsURLIP checks if the provided string is a URL with an IP address.
-func IsURLIP(str string) bool {
+func IsURLIP(str string) (bool, error) {
 	parsedURL, err := url.Parse(str)
 	if err != nil {
-		return false // Return false if the URL parsing fails
+		return false, err // Parse error
 	}
 
 	host := parsedURL.Hostname()
 	if host == "" {
-		return false // Return false if the hostname is empty
+		return false, nil // Return false if the hostname is empty
 	}
 
 	// Check if the host is a valid IP address (IPv4 or IPv6)
 	if net.ParseIP(host) != nil {
-		return true
+		return true, nil
 	}
 
 	// If the host is not a valid IP address, check if it has a port
 	if strings.Contains(host, ":") {
 		host, _, err = net.SplitHostPort(host)
 		if err != nil {
-			return false // Return false if there is an error splitting the host and port
+			return false, err // Split error
 		}
 
 		// Check if the modified host is a valid IP address (IPv4 or IPv6)
 		if net.ParseIP(host) != nil {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 // IsCIDR checks if the provided string is a CIDR.
