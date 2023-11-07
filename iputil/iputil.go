@@ -1,12 +1,16 @@
 package iputil
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/yl2chen/cidranger"
 )
 
 // ParseIPRange parses the provided IP range and returns a slice of IP addresses.
@@ -63,6 +67,87 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 	}
 
 	return ips, nil
+}
+
+// IPsToCIDR converts a slice of IPs to a slice of CIDR blocks.
+func IPsToCIDR(IPs []string) (cidrs []string) {
+	ranger := cidranger.NewPCTrieRanger()
+
+	for _, ipStr := range IPs {
+		ip, _, err := net.ParseCIDR(ipStr + "/32")
+		if err != nil {
+			continue // skip invalid IPs
+		}
+		// Convert *net.IPNet to net.IPNet
+		_, network, _ := net.ParseCIDR(ip.String() + "/32")
+		_ = ranger.Insert(cidranger.NewBasicRangerEntry(*network))
+	}
+
+	// net.IPNet{} instantiates a zero value of net.IPNet which covers all possible networks.
+	entries, _ := ranger.CoveredNetworks(net.IPNet{})
+	for _, e := range entries {
+		cidrs = append(cidrs, e.Network().IP.String())
+	}
+
+	return
+}
+
+// IPsToRange takes a slice of IP strings and returns a slice of IP ranges.
+func IPsToRange(IPs []string) ([]string, error) {
+	if len(IPs) == 0 {
+		return nil, fmt.Errorf("no IPs provided")
+	}
+
+	sort.Slice(IPs, func(i, j int) bool {
+		return bytes.Compare(net.ParseIP(IPs[i]), net.ParseIP(IPs[j])) < 0
+	})
+
+	startIP := IPs[0]
+	endIP := IPs[0]
+
+	var ipRanges []string
+	for i := 1; i < len(IPs); i++ {
+		if !isConsecutive(net.ParseIP(endIP), net.ParseIP(IPs[i])) {
+			ipRanges = append(ipRanges, startIP+" - "+endIP)
+			startIP = IPs[i]
+		}
+		endIP = IPs[i]
+	}
+	ipRanges = append(ipRanges, startIP+" - "+endIP)
+
+	return ipRanges, nil
+}
+
+// IPRangeToCIDR converts an IP range to a slice of CIDR blocks.
+func IPRangeToCIDR(ipRange string) ([]string, error) {
+	ips, err := ParseIPRange(ipRange)
+	if err != nil {
+		return nil, err
+	}
+
+	var cidrs []string
+	for _, ip := range ips {
+		cidrs = append(cidrs, ip.String()+"/32")
+	}
+	return cidrs, nil
+}
+
+// CIDRtoIPRange converts a CIDR block to an IP range.
+func CIDRtoIPRange(cidr string) (string, error) {
+	ips, err := ParseCIDR(cidr)
+	if err != nil {
+		return "", err
+	}
+	if len(ips) == 0 {
+		return "", fmt.Errorf("no IPs in the CIDR")
+	}
+
+	// The first IP in the range is the network address, so we start with the second IP
+	startIP := ips[1]
+	// The last IP is the broadcast address, so we use the second to last
+	endIP := ips[len(ips)-2]
+
+	return fmt.Sprintf("%s - %s", startIP.String(), endIP.String()), nil
 }
 
 // IsValidNetworkInput checks if the provided string is a valid IP address, CIDR or IP range.
@@ -297,4 +382,18 @@ func inc(ip net.IP) {
 			break
 		}
 	}
+}
+
+// This helper checks if two IPs are consecutive.
+func isConsecutive(ip1, ip2 net.IP) bool {
+	// Increment ip1 and see if it matches ip2.
+	ip1 = ip1.To4()
+	ip2 = ip2.To4()
+	for i := len(ip1) - 1; i >= 0; i-- {
+		ip1[i]++
+		if ip1[i] != 0 {
+			break
+		}
+	}
+	return ip1.Equal(ip2)
 }
