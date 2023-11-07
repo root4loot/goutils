@@ -25,31 +25,54 @@ func ParseIPRange(ipRange string) ([]net.IP, error) {
 		return nil, fmt.Errorf("invalid start IP address: %s", parts[0])
 	}
 
-	var endIP net.IP
-	if strings.Contains(parts[1], ".") {
-		endIP = net.ParseIP(strings.TrimSpace(parts[1]))
-		if endIP == nil {
-			return nil, fmt.Errorf("invalid end IP address: %s", parts[1])
-		}
-	} else {
-		inc, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+	endIP := net.ParseIP(strings.TrimSpace(parts[1]))
+	if endIP == nil {
+		// Handle abbreviated end IP
+		increment, err := strconv.Atoi(strings.TrimSpace(parts[1]))
 		if err != nil {
 			return nil, fmt.Errorf("invalid IP range format: %s", ipRange)
 		}
-		endIP = calculateEndIP(startIP, inc)
+		endIP = make(net.IP, len(startIP))
+		copy(endIP, startIP)
+		lastOctet := int(startIP[len(startIP)-1]) + increment
+		if lastOctet >= 256 { // Check for valid IP range
+			return nil, fmt.Errorf("invalid end IP value: results in an octet greater than 255")
+		}
+		endIP[len(endIP)-1] = byte(lastOctet - 1) // Subtract 1 to include the last IP
+	} else {
+		// Check if the start IP is greater than the end IP
+		if bytes.Compare(startIP, endIP) > 0 {
+			return nil, fmt.Errorf("start IP address %s is greater than end IP address %s", startIP, endIP)
+		}
 	}
 
 	var ips []net.IP
-	ip := startIP
-	for ipLessThan(ip, endIP) {
-		clone := make(net.IP, len(ip))
-		copy(clone, ip)
-		ips = append(ips, clone)
+	ip := make(net.IP, len(startIP))
+	copy(ip, startIP)
 
-		inc(ip)
+	for {
+		ips = append(ips, ip)
+
+		if ip.Equal(endIP) {
+			break
+		}
+
+		nextIP := make(net.IP, len(ip))
+		copy(nextIP, ip)
+		if !inc(nextIP) {
+			return nil, fmt.Errorf("IP address overflowed while incrementing")
+		}
+		ip = nextIP // Set ip to the nextIP for the next iteration
 	}
 
 	return ips, nil
+}
+
+// isSameSubnet checks if two IP addresses are in the same subnet.
+// For the purposes of this check, we'll assume that if both IPs are private,
+// they are considered to be in the same 'subnet' for simplicity.
+func isSameSubnet(ip1, ip2 net.IP) bool {
+	return IsPrivateIP(ip1) && IsPrivateIP(ip2)
 }
 
 // ParseCIDR parses the provided CIDR and returns a slice of IP addresses.
@@ -259,6 +282,26 @@ func IsIPv6(ip string) bool {
 	return parsedIP != nil && parsedIP.To4() == nil
 }
 
+// IsPrivateIP checks if the given IP is a private address.
+func IsPrivateIP(ip net.IP) bool {
+	privateBlocks := []string{
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+	}
+
+	for _, block := range privateBlocks {
+		_, cidr, err := net.ParseCIDR(block)
+		if err != nil {
+			return false
+		}
+		if cidr.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
 // IsPublicIP checks if the provided IP address is a public IP address.
 func IsPublicIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
@@ -311,16 +354,16 @@ func IsIPInRange(ip string, ipRange string) (bool, error) {
 }
 
 // calculateEndIP calculates the end IP address based on the given increment value.
-func calculateEndIP(startIP net.IP, increment int) net.IP {
+func calculateEndIP(startIP net.IP, inc int) net.IP {
 	endIP := make(net.IP, len(startIP))
 	copy(endIP, startIP)
 
-	for i := len(endIP) - 1; i >= 0; i-- {
-		sum := int(endIP[i]) + increment
-		endIP[i] = byte(sum)
-		increment = sum >> 8
+	lastOctet := int(endIP[len(endIP)-1]) + inc
+	if lastOctet > 255 {
+		return nil // This indicates an error condition.
 	}
 
+	endIP[len(endIP)-1] = byte(lastOctet)
 	return endIP
 }
 
@@ -374,14 +417,15 @@ func ipEqual(ip1, ip2 net.IP) bool {
 	return ip1.Equal(ip2)
 }
 
-// inc increments the IP address.
-func inc(ip net.IP) {
+// inc increments the IP address and returns false if there is an overflow.
+func inc(ip net.IP) bool {
 	for j := len(ip) - 1; j >= 0; j-- {
 		ip[j]++
-		if ip[j] > 0 {
-			break
+		if ip[j] != 0 {
+			return true // no overflow
 		}
 	}
+	return false // overflow occurred
 }
 
 // This helper checks if two IPs are consecutive.
