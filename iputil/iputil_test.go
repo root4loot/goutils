@@ -83,3 +83,30 @@ func TestParseIPRange(t *testing.T) {
 		})
 	}
 }
+
+func TestParseCIDR(t *testing.T) {
+	t.Run("valid CIDR", func(t *testing.T) {
+		cidr := "192.168.1.0/30"
+		expectedIPs := []string{
+			"192.168.1.0",
+			"192.168.1.1",
+			"192.168.1.2",
+			"192.168.1.3",
+		}
+		ips, err := ParseCIDR(cidr)
+		if err != nil {
+			t.Fatalf("ParseCIDR() error = %v, wantErr false", err)
+		}
+
+		var ipsStrings []string
+		for _, ip := range ips {
+			ipsStrings = append(ipsStrings, ip.String())
+		}
+
+		if !reflect.DeepEqual(ipsStrings, expectedIPs) {
+			t.Errorf("ParseCIDR() = %v, want %v", ipsStrings, expectedIPs)
+		}
+	})
+
+	// ... other test cases ...
+}

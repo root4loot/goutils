@@ -76,10 +76,15 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 	}
 
 	var ips []net.IP
-	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); inc(ip) {
+	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); {
 		clone := make(net.IP, len(ip))
 		copy(clone, ip)
 		ips = append(ips, clone)
+
+		// Increment ip for next iteration
+		if !inc(ip) {
+			break // if overflowed, break out of the loop
+		}
 	}
 
 	return ips, nil
