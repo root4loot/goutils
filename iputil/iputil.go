@@ -68,13 +68,6 @@ func ParseIPRange(ipRange string) ([]net.IP, error) {
 	return ips, nil
 }
 
-// isSameSubnet checks if two IP addresses are in the same subnet.
-// For the purposes of this check, we'll assume that if both IPs are private,
-// they are considered to be in the same 'subnet' for simplicity.
-func isSameSubnet(ip1, ip2 net.IP) bool {
-	return IsPrivateIP(ip1) && IsPrivateIP(ip2)
-}
-
 // ParseCIDR parses the provided CIDR and returns a slice of IP addresses.
 func ParseCIDR(cidr string) ([]net.IP, error) {
 	ip, ipNet, err := net.ParseCIDR(cidr)
@@ -440,4 +433,11 @@ func isConsecutive(ip1, ip2 net.IP) bool {
 		}
 	}
 	return ip1.Equal(ip2)
+}
+
+// isSameSubnet checks if two IP addresses are in the same subnet.
+// For the purposes of this check, we'll assume that if both IPs are private,
+// they are considered to be in the same 'subnet' for simplicity.
+func isSameSubnet(ip1, ip2 net.IP) bool {
+	return IsPrivateIP(ip1) && IsPrivateIP(ip2)
 }
