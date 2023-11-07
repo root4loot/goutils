@@ -16,9 +16,14 @@ func IsDomainName(str string) bool {
 
 // IsValidDomain checks if a domain is valid by attempting to parse it with a custom scheme.
 func IsValidDomain(domain string) bool {
+	if !IsDomainName(domain) {
+		return false // If the domain doesn't match the regex, return false immediately
+	}
+
+	// Parse the domain with a custom scheme
 	u, err := url.Parse("valid://" + domain)
 	if err != nil {
-		return false
+		return false // If parsing fails, return false
 	}
 
 	// Check if the host is non-empty and there's no Path or RawQuery
