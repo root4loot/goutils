@@ -91,23 +91,35 @@ func ParseCIDR(cidr string) ([]net.IP, error) {
 }
 
 // IPsToCIDR converts a slice of IPs to a slice of CIDR blocks.
-func IPsToCIDR(IPs []string) (cidrs []string) {
+func IPsToCIDR(IPs []string) (cidrs []string, err error) {
 	ranger := cidranger.NewPCTrieRanger()
 
 	for _, ipStr := range IPs {
 		ip, _, err := net.ParseCIDR(ipStr + "/32")
 		if err != nil {
+			fmt.Printf("Skipping invalid IP: %s, error: %v\n", ipStr, err)
 			continue // skip invalid IPs
 		}
 		// Convert *net.IPNet to net.IPNet
 		_, network, _ := net.ParseCIDR(ip.String() + "/32")
-		_ = ranger.Insert(cidranger.NewBasicRangerEntry(*network))
+		err = ranger.Insert(cidranger.NewBasicRangerEntry(*network))
+		if err != nil {
+			return nil, fmt.Errorf("error inserting IP to ranger: %s, error: %v", ipStr, err)
+		}
 	}
 
-	// net.IPNet{} instantiates a zero value of net.IPNet which covers all possible networks.
-	entries, _ := ranger.CoveredNetworks(net.IPNet{})
+	_, allIPv4Net, err := net.ParseCIDR("0.0.0.0/0")
+	if err != nil {
+		return nil, fmt.Errorf("error parsing all-encompassing IPv4 CIDR: %v", err)
+	}
+	entries, err := ranger.CoveredNetworks(*allIPv4Net)
+	if err != nil {
+		return nil, fmt.Errorf("error getting covered networks: %v", err)
+	}
 	for _, e := range entries {
-		cidrs = append(cidrs, e.Network().IP.String())
+		ones, _ := e.Network().Mask.Size() // This gives you the prefix length
+		cidr := fmt.Sprintf("%s/%d", e.Network().IP.String(), ones)
+		cidrs = append(cidrs, cidr)
 	}
 
 	return

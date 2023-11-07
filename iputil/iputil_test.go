@@ -110,3 +110,19 @@ func TestParseCIDR(t *testing.T) {
 
 	// ... other test cases ...
 }
+
+func TestIPsToCIDR(t *testing.T) {
+	t.Run("convert IPs to /32 CIDR blocks", func(t *testing.T) {
+		ips := []string{"192.168.1.0", "192.168.1.1", "192.168.1.2", "192.168.1.3"}
+		got, err := IPsToCIDR(ips)
+		if err != nil {
+			t.Fatalf("IPsToCIDR() error = %v", err)
+		}
+
+		want := []string{"192.168.1.0/32", "192.168.1.1/32", "192.168.1.2/32", "192.168.1.3/32"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("IPsToCIDR() = %v, want %v", got, want)
+		}
+	})
+
+}
