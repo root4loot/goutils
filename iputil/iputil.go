@@ -131,21 +131,30 @@ func IPsToRange(IPs []string) ([]string, error) {
 		return nil, fmt.Errorf("no IPs provided")
 	}
 
+	// Sort IPs to ensure they are in order.
 	sort.Slice(IPs, func(i, j int) bool {
 		return bytes.Compare(net.ParseIP(IPs[i]), net.ParseIP(IPs[j])) < 0
 	})
 
+	// Initialize the starting IP as the first IP in the sorted slice.
 	startIP := IPs[0]
 	endIP := IPs[0]
 
 	var ipRanges []string
 	for i := 1; i < len(IPs); i++ {
-		if !isConsecutive(net.ParseIP(endIP), net.ParseIP(IPs[i])) {
+		// Parse the current IP.
+		currentIP := net.ParseIP(IPs[i])
+		// Check if the current IP is consecutive to the end IP.
+		if !isConsecutive(net.ParseIP(endIP), currentIP) {
+			// If not consecutive, end the current range and start a new one.
 			ipRanges = append(ipRanges, startIP+" - "+endIP)
 			startIP = IPs[i]
 		}
+		// Set the end IP to the current IP.
 		endIP = IPs[i]
 	}
+
+	// Append the last range to the list.
 	ipRanges = append(ipRanges, startIP+" - "+endIP)
 
 	return ipRanges, nil
@@ -440,15 +449,18 @@ func inc(ip net.IP) bool {
 
 // This helper checks if two IPs are consecutive.
 func isConsecutive(ip1, ip2 net.IP) bool {
-	// Increment ip1 and see if it matches ip2.
+	// Ensure ip1 and ip2 are in 4 byte representation for IPv4 addresses
 	ip1 = ip1.To4()
 	ip2 = ip2.To4()
+
+	// Increment ip1 by 1 and check if it equals ip2
 	for i := len(ip1) - 1; i >= 0; i-- {
 		ip1[i]++
-		if ip1[i] != 0 {
+		if ip1[i] != 0 { // This prevents rolling over e.g., 255 to 0
 			break
 		}
 	}
+
 	return ip1.Equal(ip2)
 }
 

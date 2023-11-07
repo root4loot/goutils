@@ -126,3 +126,31 @@ func TestIPsToCIDR(t *testing.T) {
 	})
 
 }
+
+func TestIPsToRange(t *testing.T) {
+	tests := []struct {
+		name    string
+		IPs     []string
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "unordered IPs",
+			IPs:  []string{"192.168.1.3", "192.168.1.1", "192.168.1.5", "192.168.1.2"},
+			want: []string{"192.168.1.1 - 192.168.1.3", "192.168.1.5 - 192.168.1.5"},
+		},
+		// other test cases...
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := IPsToRange(tt.IPs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("IPsToRange() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("IPsToRange() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
