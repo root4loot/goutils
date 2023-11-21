@@ -40,7 +40,7 @@ func DeserializeFromFile(filePath string, data interface{}) error {
 	}
 
 	// Parse JSON data into struct
-	err = json.Unmarshal(fileData, &data)
+	err = json.Unmarshal(fileData, data)
 	if err != nil {
 		return err
 	}
