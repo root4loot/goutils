@@ -71,23 +71,23 @@ func WithFields(fields Fields) *logrus.Entry {
 
 // Generalized logging functions that accept any type as an argument
 func Debug(v ...interface{}) {
-	log.Debug(fmt.Sprint(v...))
+	log.Debug(strings.TrimSpace(fmt.Sprintln(v...)))
 }
 
 func Info(v ...interface{}) {
-	log.Info(fmt.Sprint(v...))
+	log.Info(strings.TrimSpace(fmt.Sprintln(v...)))
 }
 
 func Warn(v ...interface{}) {
-	log.Warn(fmt.Sprint(v...))
+	log.Warn(strings.TrimSpace(fmt.Sprintln(v...)))
 }
 
 func Error(v ...interface{}) {
-	log.Error(fmt.Sprint(v...))
+	log.Error(strings.TrimSpace(fmt.Sprintln(v...)))
 }
 
 func Fatal(v interface{}) {
-	log.Fatal(fmt.Sprint(v))
+	log.Fatal(strings.TrimSpace(fmt.Sprintln(v)))
 }
 
 // Formatted logging functions
