@@ -92,3 +92,21 @@ func WriteFile(filePath string, lines []string) error {
 	// Flush remaining buffered data to the file
 	return writer.Flush()
 }
+
+// WriteFileAppend takes a filepath and a single string item, then appends the string to the file.
+// The string is written on a new line. If the file does not exist, it is created.
+func WriteFileAppend(filePath string, line string) error {
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(line + "\n")
+	if err != nil {
+		return err
+	}
+
+	return writer.Flush()
+}
