@@ -2,6 +2,7 @@ package domainutil
 
 import (
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -10,6 +11,25 @@ import (
 func IsURL(url string) bool {
 	regex := regexp.MustCompile(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`)
 	return regex.MatchString(url)
+}
+
+// EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
+// or with a symbol, and if it makes sense to do so.
+func EnsureTrailingSlash(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	// Regex to check if the URL ends with a non-alphanumeric character
+	re := regexp.MustCompile(`[\W_]$`)
+
+	// Check if the path has a file extension or ends with a symbol
+	if filepath.Ext(parsedURL.Path) == "" && !re.MatchString(parsedURL.Path) && !strings.HasSuffix(parsedURL.Path, "/") {
+		parsedURL.Path += "/"
+	}
+
+	return parsedURL.String(), nil
 }
 
 // IsDomainName checks if a string is a valid domain name.
