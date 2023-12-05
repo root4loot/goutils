@@ -39,6 +39,13 @@ func IsDomainName(str string) bool {
 	return regex.MatchString(str)
 }
 
+// IsHostname checks if the given target is a valid hostname
+func IsHostname(host string) bool {
+	// Regular expression for validating a hostname (simple version)
+	var hostnameRegex = regexp.MustCompile(`^(?i)([a-z0-9]([-a-z0-9]*[a-z0-9])?\.)*[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
+	return hostnameRegex.MatchString(host)
+}
+
 // IsValidDomain checks if a domain is valid by attempting to parse it with a custom scheme.
 func IsValidDomain(domain string) bool {
 	if !IsDomainName(domain) {
