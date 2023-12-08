@@ -372,6 +372,16 @@ func IsIPInRange(ip string, ipRange string) (bool, error) {
 	return false, err
 }
 
+// ReverseDNSLookup performs a reverse DNS lookup on the given IP address.
+// It works for both IPv4 and IPv6 addresses.
+func ReverseDNSLookup(ip string) ([]string, error) {
+	names, err := net.LookupAddr(ip)
+	if err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
 // calculateEndIP calculates the end IP address based on the given increment value.
 func calculateEndIP(startIP net.IP, inc int) net.IP {
 	endIP := make(net.IP, len(startIP))
