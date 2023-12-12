@@ -1,16 +1,61 @@
 package domainutil
 
 import (
+	"context"
+	"fmt"
+	"net"
 	"net/url"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // IsURL checks if a string is a URL.
 func IsURL(url string) bool {
 	regex := regexp.MustCompile(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`)
 	return regex.MatchString(url)
+}
+
+// ResolveDomain resolves a domain name to an IP address (IPv4 or IPv6).
+// It returns the IP address and any error encountered.
+func ResolveDomain(domain string) (string, error) {
+	ips, err := net.LookupIP(domain)
+	if err != nil {
+		return "", err
+	}
+
+	for _, ip := range ips {
+		if ip4 := ip.To4(); ip4 != nil {
+			return ip4.String(), nil // IPv4
+		} else {
+			return ip.String(), nil // IPv6
+		}
+	}
+
+	return "", fmt.Errorf("no IP addresses found for domain: %s", domain)
+}
+
+// ResolveDomainWithTimeout resolves a domain name to an IP address (IPv4 or IPv6) with a specified timeout.
+// It returns the IP address and any error encountered.
+func ResolveDomainWithTimeout(domain string, timeout time.Duration) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	ips, err := net.DefaultResolver.LookupIP(ctx, "ip", domain)
+	if err != nil {
+		return "", err
+	}
+
+	for _, ip := range ips {
+		if ip4 := ip.To4(); ip4 != nil {
+			return ip4.String(), nil // IPv4
+		} else {
+			return ip.String(), nil // IPv6
+		}
+	}
+
+	return "", fmt.Errorf("no IP addresses found for domain: %s", domain)
 }
 
 // EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
