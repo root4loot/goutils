@@ -198,6 +198,12 @@ func EnsurePortIsSet(rawURL string) string {
 	return u.String()
 }
 
+// HasScheme checks if a URL has a scheme
+func HasScheme(url string) bool {
+	re := regexp.MustCompile(`^\w+?:\/\/\w+`)
+	return re.MatchString(url)
+}
+
 func unique(items []string) (uniqueItems []string) {
 	uniqueMap := make(map[string]bool)
 	for _, item := range items {
