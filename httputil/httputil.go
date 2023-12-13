@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -78,4 +79,35 @@ func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
 	}
 
 	return client, nil
+}
+
+func IsBinaryResponse(resp *http.Response) bool {
+	if resp == nil || resp.Header == nil {
+		return false
+	}
+
+	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
+
+	// List of common binary MIME types
+	binaryMimes := []string{
+		"application/octet-stream", "application/pdf", "application/zip",
+		"application/x-rar-compressed", "application/x-7z-compressed",
+		"application/x-tar", "application/gzip", "application/msword",
+		"application/vnd.ms-excel", "application/vnd.ms-powerpoint",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		"image/jpeg", "image/png", "image/gif", "image/webp",
+		"image/tiff", "image/bmp", "video/mp4", "video/mpeg",
+		"video/quicktime", "video/x-msvideo", "video/x-ms-wmv", "video/webm",
+		"audio/mpeg", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/webm",
+		"application/x-binary", "application/x-shockwave-flash",
+	}
+
+	for _, mime := range binaryMimes {
+		if strings.HasPrefix(contentType, mime) {
+			return true
+		}
+	}
+	return false
 }
