@@ -36,6 +36,11 @@ type Logger struct {
 	packageName string
 }
 
+type Tag struct {
+	tag    string
+	logger *Logger
+}
+
 // InitGlobalLogger initializes the global logger
 func InitGlobalLogger(name string) {
 	log = NewLogger(name)
@@ -50,6 +55,14 @@ func NewLogger(packageName string) *Logger {
 	l := logrus.New()
 	l.SetFormatter(&CustomFormatter{packageName: packageName})
 	return &Logger{l, packageName}
+}
+
+func NewTag(tag string) *Tag {
+	return &Tag{tag: tag}
+}
+
+func (l *Logger) NewTag(tag string) *Tag {
+	return &Tag{logger: l, tag: tag}
 }
 
 // SetLevel sets the logger level
@@ -69,6 +82,29 @@ func GetLevel() Level {
 
 func WithFields(fields Fields) *logrus.Entry {
 	return log.Logger.WithFields(logrus.Fields(fields))
+}
+
+// entry returns a logrus entry with the tag field set
+func (t *Tag) entry() *logrus.Entry {
+	if t.logger != nil {
+		return t.logger.WithFields(logrus.Fields{"tag": t.tag})
+	} else {
+		return log.Logger.WithFields(logrus.Fields{"tag": t.tag})
+	}
+}
+
+func (t *Tag) Log(v ...interface{}) {
+	entry := t.entry()
+	if entry != nil {
+		entry.Info(v...)
+	}
+}
+
+func (t *Tag) Logf(format string, v ...interface{}) {
+	entry := t.entry()
+	if entry != nil {
+		entry.Infof(format, v...)
+	}
 }
 
 // Generalized logging functions that accept any type as an argument
