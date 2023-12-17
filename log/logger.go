@@ -100,8 +100,8 @@ func (l *Label) Log(v ...interface{}) {
 
 	// Create a log entry with label and tagColor fields
 	entry := l.logger.WithFields(logrus.Fields{
-		"label":    l.label, // Label associated with this log
-		"tagColor": l.color, // Color associated with the label
+		"label":      l.label, // Label associated with this log
+		"labelColor": l.color, // Color associated with the label
 	})
 
 	// Log the provided values as an Info message
@@ -114,8 +114,8 @@ func (l *Label) Logf(format string, v ...interface{}) {
 	}
 
 	entry := l.logger.WithFields(logrus.Fields{
-		"label":    l.label,
-		"tagColor": l.color,
+		"label":      l.label,
+		"labelColor": l.color,
 	})
 	entry.Infof(format, v...)
 }
@@ -250,21 +250,28 @@ func convertRelogLevelToLogrusLevel(level Level) logrus.Level {
 	}
 }
 
-// SetColor sets the label color
+// SetColor sets the label color based on the provided color name.
+// Supported colors: "grey", "red", "blue", "yellow", "green", "purple", "cyan", "white", "orange"
+// If an unsupported color is provided, it defaults to "white".
 func (l *Label) SetColor(color string) {
-	if color == "grey" {
+	switch color {
+	case "grey":
 		l.color = lightGrey
-	}
-	if color == "red" {
+	case "red":
 		l.color = red
-	}
-	if color == "blue" {
+	case "blue":
 		l.color = blue
-	}
-	if color == "yellow" {
+	case "yellow":
 		l.color = yellow
-	}
-	if color == "grey" {
-		l.color = lightGrey
+	case "green":
+		l.color = green
+	case "purple":
+		l.color = purple
+	case "cyan":
+		l.color = cyan
+	case "orange": // Adding support for "orange" color
+		l.color = orange // ANSI escape code for orange color
+	default:
+		l.color = white // Default to white if an unsupported color is provided
 	}
 }

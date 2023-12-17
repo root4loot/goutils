@@ -15,6 +15,10 @@ const (
 	yellow    = "\033[93m"
 	blue      = "\033[94m"
 	white     = "\033[37m"
+	green     = "\033[92m"
+	purple    = "\033[95m"
+	cyan      = "\033[96m"
+	orange    = "\033[38;5;214m" // Adding a different orange color
 )
 
 type CustomFormatter struct {
@@ -23,19 +27,22 @@ type CustomFormatter struct {
 
 // Format formats the log output
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	var logOutput string
+
 	// Check for a custom tag and use it if present
 	levelText := strings.ToUpper(entry.Level.String())
 	if label, ok := entry.Data["label"]; ok {
 		levelText = label.(string) // Casting to string, ensure label is always a string
 	}
 
-	// Get color from entry fields, fall back to default if not set
-	color, ok := entry.Data["tagColor"].(string)
-	if !ok {
-		color = white
+	// Check if a custom color ("labelColor") is defined in the log entry's data.
+	if color, ok := entry.Data["labelColor"].(string); ok {
+		// If a custom color is defined, use it for log output
+		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, color, levelText, reset, entry.Message)
+	} else {
+		// If no custom color is defined, use the default color based on the log level.
+		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, getColor(entry.Level), levelText, reset, entry.Message)
 	}
-
-	logOutput := fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, color, levelText, reset, entry.Message)
 
 	// Prepare fields output
 	fieldsOutput := ""
@@ -58,4 +65,18 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	return []byte(logOutput + fieldsOutput + "\n"), nil
+}
+
+// getColor returns the color for the log level
+func getColor(level logrus.Level) string {
+	switch level {
+	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
+		return red
+	case logrus.WarnLevel:
+		return yellow
+	case logrus.InfoLevel:
+		return blue
+	default:
+		return reset
+	}
 }
