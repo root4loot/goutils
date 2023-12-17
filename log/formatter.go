@@ -24,25 +24,20 @@ type CustomFormatter struct {
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	color := getColor(entry.Level)
 
-	// Start with the basic log format
-	logOutput := fmt.Sprintf("%s[%s]%s%s", lightGrey, f.packageName, reset, color)
-
 	// Check for a custom tag and use it if present
+	levelText := strings.ToUpper(entry.Level.String())
 	if tag, ok := entry.Data["tag"]; ok {
-		levelText := tag.(string) // Casting to string, ensure tag is always a string
-		logOutput += fmt.Sprintf(" (%s)%s %s", levelText, reset, entry.Message)
-	} else {
-		levelText := strings.ToUpper(entry.Level.String())
-		logOutput += fmt.Sprintf(" (%s)%s %s", levelText, reset, entry.Message)
+		levelText = tag.(string) // Casting to string, ensure tag is always a string
 	}
+
+	// Start with the basic log format
+	logOutput := fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, color, levelText, reset, entry.Message)
 
 	// Prepare fields output
 	fieldsOutput := ""
 	if len(entry.Data) > 0 {
 		for key, value := range entry.Data {
-			if key != "tag" {
-				fieldsOutput += fmt.Sprintf(" %s=%v", key, value) // Adjust this to colorize key/values
-			}
+			fieldsOutput += fmt.Sprintf(" %s=%v", key, value) // Adjust this to colorize key/values
 		}
 	}
 

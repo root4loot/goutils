@@ -89,29 +89,14 @@ func WithFields(fields Fields) *logrus.Entry {
 	return log.Logger.WithFields(logrus.Fields(fields))
 }
 
-// entry returns a logrus entry with the tag field set
-func (t *Tag) entry() *logrus.Entry {
-	if t.logger != nil {
-		return t.logger.WithFields(logrus.Fields{"tag": t.tag})
-	} else {
-		return log.Logger.WithFields(logrus.Fields{"tag": t.tag})
-	}
-}
-
 // Log logs a message with the tag
 func (t *Tag) Log(v ...interface{}) {
-	entry := t.entry()
-	if entry != nil {
-		entry.Info(v...)
-	}
+	log.Info(v...)
 }
 
 // Logf logs a formatted message with the tag
 func (t *Tag) Logf(format string, v ...interface{}) {
-	entry := t.entry()
-	if entry != nil {
-		entry.Infof(format, v...)
-	}
+	log.Infof(format, v...)
 }
 
 // Debug logs a message at level Debug on the standard logger.
