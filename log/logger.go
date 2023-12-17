@@ -2,15 +2,19 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/root4loot/goutils/color"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type Level int
 
 const (
 	DebugLevel Level = iota
+	TraceLevel       // Custom level
 	InfoLevel
 	WarnLevel
 	ErrorLevel
@@ -22,6 +26,7 @@ var log *Logger
 
 var levels = []string{
 	"debug",
+	"trace",
 	"info",
 	"warn",
 	"error",
@@ -45,6 +50,14 @@ type Label struct {
 // Init initializes the global logger
 func Init(name string) {
 	log = NewLogger(name)
+}
+
+// Notify prints a notification message to stderr if the output is being piped.
+func Notify(message string) {
+	if isOutputPiped() {
+		// Print the message to stderr with yellow color formatting
+		fmt.Fprintf(os.Stderr, "\033[33m[Notification]\033[0m %s\n", message)
+	}
 }
 
 // String returns the string representation of the log level
@@ -90,8 +103,8 @@ func WithFields(fields Fields) *logrus.Entry {
 	return log.Logger.WithFields(logrus.Fields(fields))
 }
 
-// Log logs a message using the logger.
-// If no logger is set, it uses the global logger.
+// Logf logs message at the Info level using the label's logger.
+// If the label's logger is not set, it defaults to the global logger.
 func (l *Label) Log(v ...interface{}) {
 	// Check if a logger is set, if not, use the global logger
 	if l.logger == nil {
@@ -108,11 +121,14 @@ func (l *Label) Log(v ...interface{}) {
 	entry.Info(v...)
 }
 
+// Logf logs a formatted message at the Info level using the label's logger.
+// If the label's logger is not set, it defaults to the global logger.
 func (l *Label) Logf(format string, v ...interface{}) {
 	if l.logger == nil {
-		l.logger = log
+		l.logger = log // Default to the global logger
 	}
 
+	// Create a log entry with additional fields and log it at the Info level
 	entry := l.logger.WithFields(logrus.Fields{
 		"label":      l.label,
 		"labelColor": l.color,
@@ -132,6 +148,32 @@ func Info(v ...interface{}) {
 	if log != nil {
 		log.Info(strings.TrimSpace(fmt.Sprintln(v...)))
 	}
+}
+
+// Result logs a message using a specified or global logger.
+// The log is printed to stdout, and metadata is printed to stderr if not piped.
+func Result(v ...interface{}) {
+	var logger *Logger
+	if len(v) > 0 {
+		// Check if the first argument is a logger and use it; otherwise, use the global logger
+		var ok bool
+		if logger, ok = v[0].(*Logger); ok {
+			v = v[1:] // Use the provided logger and adjust the variadic slice
+		} else {
+			logger = log // Default to the global logger
+		}
+	} else {
+		logger = log // Default to the global logger
+	}
+
+	message := fmt.Sprint(v...) // Create the message string
+	if !isOutputPiped() {
+		// Print metadata to stderr with blue color formatting
+		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
+		fmt.Fprint(os.Stderr, metadata+" ")
+	}
+	// Print the message to stdout
+	fmt.Fprintln(os.Stdout, message)
 }
 
 // Warn logs a message at level Warn on the standard logger.
@@ -169,6 +211,32 @@ func Infof(format string, v ...interface{}) {
 	}
 }
 
+// Resultf logs a formatted message using a specified or global logger.
+// The log is printed to stdout, and metadata is printed to stderr if not piped.
+func Resultf(format string, v ...interface{}) {
+	var logger *Logger
+	if len(v) > 0 {
+		// Check if the first argument is a logger and use it; otherwise, use the global logger
+		var ok bool
+		if logger, ok = v[0].(*Logger); ok {
+			v = v[1:] // Use the provided logger and adjust the variadic slice
+		} else {
+			logger = log // Default to the global logger
+		}
+	} else {
+		logger = log // Default to the global logger
+	}
+
+	message := fmt.Sprintf(format, v...) // Create the formatted message string
+	if !isOutputPiped() {
+		// Print metadata to stderr with blue color formatting
+		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
+		fmt.Fprint(os.Stderr, metadata+" ")
+	}
+	// Print the formatted message to stdout
+	fmt.Fprintln(os.Stdout, message)
+}
+
 // Warnf logs a message at level Warn on the standard logger.
 func Warnf(format string, v ...interface{}) {
 	if log != nil {
@@ -190,6 +258,10 @@ func Fatalf(format string, v ...interface{}) {
 	}
 }
 
+func isOutputPiped() bool {
+	return !terminal.IsTerminal(int(os.Stdout.Fd()))
+}
+
 // getLogLevel returns the log level based on passed string
 func getLogLevel(level string) Level {
 	switch level {
@@ -197,6 +269,8 @@ func getLogLevel(level string) Level {
 		return DebugLevel
 	case "info":
 		return InfoLevel
+	case "trace":
+		return TraceLevel
 	case "warn":
 		return WarnLevel
 	case "error":
@@ -215,6 +289,8 @@ func convertLogrusLevelToRelogLevel(level logrus.Level) Level {
 	switch level {
 	case logrus.DebugLevel:
 		return DebugLevel
+	case logrus.TraceLevel:
+		return TraceLevel
 	case logrus.InfoLevel:
 		return InfoLevel
 	case logrus.WarnLevel:
@@ -235,6 +311,8 @@ func convertRelogLevelToLogrusLevel(level Level) logrus.Level {
 	switch level {
 	case DebugLevel:
 		return logrus.DebugLevel
+	case TraceLevel:
+		return logrus.TraceLevel
 	case InfoLevel:
 		return logrus.InfoLevel
 	case WarnLevel:
