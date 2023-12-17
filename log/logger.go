@@ -12,6 +12,9 @@ import (
 
 type Level int
 
+// PipedOutputNotification is the standard message to notify about piped output.
+const PipedOutputNotification = "Notice: Output is being piped. 'Result' logs will be formatted accordingly."
+
 const (
 	DebugLevel Level = iota
 	TraceLevel       // Custom level
@@ -53,10 +56,28 @@ func Init(name string) {
 }
 
 // Notify prints a notification message to stderr if the output is being piped.
-func Notify(message string) {
-	if isOutputPiped() {
-		// Print the message to stderr with yellow color formatting
-		fmt.Fprintf(os.Stderr, "\033[33m[Notification]\033[0m %s\n", message)
+// It accepts an optional logger and defaults to the global logger if none is provided.
+func Notify(v ...interface{}) {
+	var logger *Logger
+	if len(v) > 0 {
+		// Check if the first argument is a logger and use it; otherwise, use the global logger
+		var ok bool
+		if logger, ok = v[0].(*Logger); ok {
+			v = v[1:] // Use the provided logger and adjust the variadic slice
+		} else {
+			logger = log // Default to the global logger
+		}
+	} else {
+		logger = log // Default to the global logger
+	}
+
+	if IsOutputPiped() {
+		message := fmt.Sprint(v...) // Create the message string
+		// Apply color formatting to packageName and INFO label separately
+		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
+		infoLabelFormatted := color.Colorize(color.Yellow, " (INFO)")
+		// Print the formatted metadata and message to stderr
+		fmt.Fprint(os.Stderr, packageNameFormatted+infoLabelFormatted+" "+message+"\n")
 	}
 }
 
@@ -167,7 +188,7 @@ func Result(v ...interface{}) {
 	}
 
 	message := fmt.Sprint(v...) // Create the message string
-	if !isOutputPiped() {
+	if !IsOutputPiped() {
 		// Print metadata to stderr with blue color formatting
 		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
 		fmt.Fprint(os.Stderr, metadata+" ")
@@ -228,7 +249,7 @@ func Resultf(format string, v ...interface{}) {
 	}
 
 	message := fmt.Sprintf(format, v...) // Create the formatted message string
-	if !isOutputPiped() {
+	if !IsOutputPiped() {
 		// Print metadata to stderr with blue color formatting
 		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
 		fmt.Fprint(os.Stderr, metadata+" ")
@@ -258,7 +279,7 @@ func Fatalf(format string, v ...interface{}) {
 	}
 }
 
-func isOutputPiped() bool {
+func IsOutputPiped() bool {
 	return !terminal.IsTerminal(int(os.Stdout.Fd()))
 }
 
