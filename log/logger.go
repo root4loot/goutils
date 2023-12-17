@@ -37,6 +37,17 @@ var levels = []string{
 	"panic",
 }
 
+var logLevelAbbreviations = map[string]string{
+	"WARNING": "WAR",
+	"INFO":    "INF",
+	"DEBUG":   "DEB",
+	"RESULT":  "RES",
+	"ERROR":   "ERR",
+	"FATAL":   "FAT",
+	"PANIC":   "PAN",
+	// Add other levels as needed
+}
+
 type Fields logrus.Fields
 
 type Logger struct {
@@ -60,23 +71,20 @@ func Init(name string) {
 func Notify(v ...interface{}) {
 	var logger *Logger
 	if len(v) > 0 {
-		// Check if the first argument is a logger and use it; otherwise, use the global logger
 		var ok bool
 		if logger, ok = v[0].(*Logger); ok {
-			v = v[1:] // Use the provided logger and adjust the variadic slice
+			v = v[1:]
 		} else {
-			logger = log // Default to the global logger
+			logger = log
 		}
 	} else {
-		logger = log // Default to the global logger
+		logger = log
 	}
 
 	if IsOutputPiped() {
-		message := fmt.Sprint(v...) // Create the message string
-		// Apply color formatting to packageName and INFO label separately
+		message := fmt.Sprint(v...)
 		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
-		infoLabelFormatted := color.Colorize(color.Yellow, " (INFO)")
-		// Print the formatted metadata and message to stderr
+		infoLabelFormatted := color.Colorize(color.Yellow, fmt.Sprintf(" (%s)", logLevelAbbreviations["INFO"]))
 		fmt.Fprint(os.Stderr, packageNameFormatted+infoLabelFormatted+" "+message+"\n")
 	}
 }
@@ -189,9 +197,10 @@ func Result(v ...interface{}) {
 
 	message := fmt.Sprint(v...) // Create the message string
 	if !IsOutputPiped() {
-		// Print metadata to stderr with blue color formatting
-		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
-		fmt.Fprint(os.Stderr, metadata+" ")
+		levelAbbrev := logLevelAbbreviations["RESULT"]
+		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
+		levelLabelFormatted := color.Colorize(color.Cyan, fmt.Sprintf(" (%s)", levelAbbrev))
+		fmt.Fprint(os.Stderr, packageNameFormatted+levelLabelFormatted+" ")
 	}
 	// Print the message to stdout
 	fmt.Fprintln(os.Stdout, message)
@@ -250,9 +259,10 @@ func Resultf(format string, v ...interface{}) {
 
 	message := fmt.Sprintf(format, v...) // Create the formatted message string
 	if !IsOutputPiped() {
-		// Print metadata to stderr with blue color formatting
-		metadata := color.Colorize(color.Cyan, fmt.Sprintf("[%s] (RESULT)", logger.packageName))
-		fmt.Fprint(os.Stderr, metadata+" ")
+		levelAbbrev := logLevelAbbreviations["RESULT"]
+		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
+		levelLabelFormatted := color.Colorize(color.Cyan, fmt.Sprintf(" (%s)", levelAbbrev))
+		fmt.Fprint(os.Stderr, packageNameFormatted+levelLabelFormatted+" ")
 	}
 	// Print the formatted message to stdout
 	fmt.Fprintln(os.Stdout, message)
