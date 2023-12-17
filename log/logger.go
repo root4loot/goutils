@@ -29,14 +29,6 @@ var levels = []string{
 	"panic",
 }
 
-func Init(name string) {
-	log = NewLogger(name)
-}
-
-func (lvl Level) String() string {
-	return levels[lvl]
-}
-
 type Fields logrus.Fields
 
 type Logger struct {
@@ -44,6 +36,16 @@ type Logger struct {
 	packageName string
 }
 
+// InitGlobalLogger initializes the global logger
+func InitGlobalLogger(name string) {
+	log = NewLogger(name)
+}
+
+func (lvl Level) String() string {
+	return levels[lvl]
+}
+
+// NewLogger creates a new logger
 func NewLogger(packageName string) *Logger {
 	l := logrus.New()
 	l.SetFormatter(&CustomFormatter{packageName: packageName})
@@ -71,44 +73,63 @@ func WithFields(fields Fields) *logrus.Entry {
 
 // Generalized logging functions that accept any type as an argument
 func Debug(v ...interface{}) {
-	log.Debug(strings.TrimSpace(fmt.Sprintln(v...)))
+	if log != nil {
+		log.Debug(strings.TrimSpace(fmt.Sprintln(v...)))
+	}
 }
-
 func Info(v ...interface{}) {
-	log.Info(strings.TrimSpace(fmt.Sprintln(v...)))
+	if log != nil {
+		log.Info(strings.TrimSpace(fmt.Sprintln(v...)))
+	}
 }
 
 func Warn(v ...interface{}) {
-	log.Warn(strings.TrimSpace(fmt.Sprintln(v...)))
+	if log != nil {
+		log.Warn(strings.TrimSpace(fmt.Sprintln(v...)))
+	}
 }
 
 func Error(v ...interface{}) {
-	log.Error(strings.TrimSpace(fmt.Sprintln(v...)))
+	if log != nil {
+		log.Error(strings.TrimSpace(fmt.Sprintln(v...)))
+	}
 }
 
 func Fatal(v interface{}) {
-	log.Fatal(strings.TrimSpace(fmt.Sprintln(v)))
+	if log != nil {
+		log.Fatal(strings.TrimSpace(fmt.Sprintln(v)))
+	}
 }
 
 // Formatted logging functions
 func Debugf(format string, v ...interface{}) {
-	log.Debugf(format, v...)
+	if log != nil {
+		log.Debugf(format, v...)
+	}
 }
 
 func Infof(format string, v ...interface{}) {
-	log.Infof(format, v...)
+	if log != nil {
+		log.Infof(format, v...)
+	}
 }
 
 func Warnf(format string, v ...interface{}) {
-	log.Warnf(format, v...)
+	if log != nil {
+		log.Warnf(format, v...)
+	}
 }
 
 func Errorf(format string, v ...interface{}) {
-	log.Errorf(format, v...)
+	if log != nil {
+		log.Errorf(format, v...)
+	}
 }
 
 func Fatalf(format string, v ...interface{}) {
-	log.Fatalf(format, v...)
+	if log != nil {
+		log.Fatalf(format, v...)
+	}
 }
 
 // getLogLevel returns the log level based on passed string
