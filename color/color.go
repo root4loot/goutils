@@ -1,5 +1,7 @@
 package color
 
+import "fmt"
+
 const (
 	Reset     = "\033[0m"
 	LightGrey = "\033[90m"
@@ -13,7 +15,14 @@ const (
 	Orange    = "\033[38;5;214m"
 )
 
-// Colorize applies the specified color to a string and then resets it.
-func Colorize(color, text string) string {
-	return color + text + Reset
+// Colorize formats the text with the specified color and then resets it.
+func Colorize(color string, a ...interface{}) string {
+	var result string
+	for i, item := range a {
+		if i > 0 {
+			result += " " // Add a space only between items
+		}
+		result += fmt.Sprint(item)
+	}
+	return color + result + Reset
 }

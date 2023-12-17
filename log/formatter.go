@@ -4,21 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/root4loot/goutils/color"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/term"
-)
-
-const (
-	reset     = "\033[0m"
-	lightGrey = "\033[90m"
-	red       = "\033[91m"
-	yellow    = "\033[93m"
-	blue      = "\033[94m"
-	white     = "\033[37m"
-	green     = "\033[92m"
-	purple    = "\033[95m"
-	cyan      = "\033[96m"
-	orange    = "\033[38;5;214m" // Adding a different orange color
 )
 
 type CustomFormatter struct {
@@ -36,12 +24,12 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	// Check if a custom color ("labelColor") is defined in the log entry's data.
-	if color, ok := entry.Data["labelColor"].(string); ok {
+	if labelColor, ok := entry.Data["labelColor"].(string); ok {
 		// If a custom color is defined, use it for log output
-		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, color, levelText, reset, entry.Message)
+		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", color.LightGrey, f.packageName, color.Reset, labelColor, levelText, color.Reset, entry.Message)
 	} else {
 		// If no custom color is defined, use the default color based on the log level.
-		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", lightGrey, f.packageName, reset, getColor(entry.Level), levelText, reset, entry.Message)
+		logOutput = fmt.Sprintf("%s[%s]%s%s (%s)%s %s", color.LightGrey, f.packageName, color.Reset, getColor(entry.Level), levelText, color.Reset, entry.Message)
 	}
 
 	// Prepare fields output
@@ -71,12 +59,12 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 func getColor(level logrus.Level) string {
 	switch level {
 	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
-		return red
+		return color.Red
 	case logrus.WarnLevel:
-		return yellow
+		return color.Yellow
 	case logrus.InfoLevel:
-		return blue
+		return color.Cyan
 	default:
-		return reset
+		return color.Reset
 	}
 }

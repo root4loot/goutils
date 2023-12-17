@@ -250,28 +250,7 @@ func convertRelogLevelToLogrusLevel(level Level) logrus.Level {
 	}
 }
 
-// SetColor sets the label color based on the provided color name.
-// Supported colors: "grey", "red", "blue", "yellow", "green", "purple", "cyan", "white", "orange"
-// If an unsupported color is provided, it defaults to "white".
+// SetColor sets the label color
 func (l *Label) SetColor(color string) {
-	switch color {
-	case "grey":
-		l.color = lightGrey
-	case "red":
-		l.color = red
-	case "blue":
-		l.color = blue
-	case "yellow":
-		l.color = yellow
-	case "green":
-		l.color = green
-	case "purple":
-		l.color = purple
-	case "cyan":
-		l.color = cyan
-	case "orange": // Adding support for "orange" color
-		l.color = orange // ANSI escape code for orange color
-	default:
-		l.color = white // Default to white if an unsupported color is provided
-	}
+	l.color = color
 }
