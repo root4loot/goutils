@@ -36,9 +36,10 @@ type Logger struct {
 	packageName string
 }
 
-type Tag struct {
-	tag    string
+type Label struct {
+	label  string
 	logger *Logger
+	color  string
 }
 
 // Init initializes the global logger
@@ -58,14 +59,14 @@ func NewLogger(packageName string) *Logger {
 	return &Logger{l, packageName}
 }
 
-// NewTag creates a new tag
-func NewTag(tag string) *Tag {
-	return &Tag{tag: tag}
+// NewLabel creates a new label
+func NewLabel(label string) *Label {
+	return &Label{label: label}
 }
 
-// NewTag creates a new tag
-func (l *Logger) NewTag(tag string) *Tag {
-	return &Tag{logger: l, tag: tag}
+// NewLabel creates a new label
+func (l *Logger) NewLabel(label string) *Label {
+	return &Label{logger: l, label: label}
 }
 
 // SetLevel sets the logger level
@@ -89,14 +90,34 @@ func WithFields(fields Fields) *logrus.Entry {
 	return log.Logger.WithFields(logrus.Fields(fields))
 }
 
-// Log logs a message with the tag
-func (t *Tag) Log(v ...interface{}) {
-	log.Info(v...)
+// Log logs a message using the logger.
+// If no logger is set, it uses the global logger.
+func (l *Label) Log(v ...interface{}) {
+	// Check if a logger is set, if not, use the global logger
+	if l.logger == nil {
+		l.logger = log
+	}
+
+	// Create a log entry with label and tagColor fields
+	entry := l.logger.WithFields(logrus.Fields{
+		"label":    l.label, // Label associated with this log
+		"tagColor": l.color, // Color associated with the label
+	})
+
+	// Log the provided values as an Info message
+	entry.Info(v...)
 }
 
-// Logf logs a formatted message with the tag
-func (t *Tag) Logf(format string, v ...interface{}) {
-	log.Infof(format, v...)
+func (l *Label) Logf(format string, v ...interface{}) {
+	if l.logger == nil {
+		l.logger = log
+	}
+
+	entry := l.logger.WithFields(logrus.Fields{
+		"label":    l.label,
+		"tagColor": l.color,
+	})
+	entry.Infof(format, v...)
 }
 
 // Debug logs a message at level Debug on the standard logger.
@@ -226,5 +247,24 @@ func convertRelogLevelToLogrusLevel(level Level) logrus.Level {
 		return logrus.PanicLevel
 	default:
 		return logrus.InfoLevel
+	}
+}
+
+// SetColor sets the label color
+func (l *Label) SetColor(color string) {
+	if color == "grey" {
+		l.color = lightGrey
+	}
+	if color == "red" {
+		l.color = red
+	}
+	if color == "blue" {
+		l.color = blue
+	}
+	if color == "yellow" {
+		l.color = yellow
+	}
+	if color == "grey" {
+		l.color = lightGrey
 	}
 }
