@@ -41,8 +41,8 @@ type Tag struct {
 	logger *Logger
 }
 
-// InitGlobalLogger initializes the global logger
-func InitGlobalLogger(name string) {
+// Init initializes the global logger
+func Init(name string) {
 	log = NewLogger(name)
 }
 
