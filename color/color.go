@@ -4,15 +4,16 @@ import "fmt"
 
 const (
 	Reset     = "\033[0m"
-	LightGrey = "\033[90m"
-	Red       = "\033[91m"
-	Yellow    = "\033[93m"
-	Blue      = "\033[94m"
+	Red       = "\033[31m"
+	Green     = "\033[32m"
+	Yellow    = "\033[33m"
+	Blue      = "\033[34m"
+	Purple    = "\033[35m"
+	Cyan      = "\033[36m"
 	White     = "\033[37m"
-	Green     = "\033[92m"
-	Purple    = "\033[95m"
-	Cyan      = "\033[96m"
+	LightGrey = "\033[90m"
 	Orange    = "\033[38;5;214m"
+	// Add any other colors you need
 )
 
 // Colorize formats the text with the specified color and then resets it.
