@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/root4loot/goutils/urlutil"
 	"golang.org/x/net/html"
 )
 
@@ -83,6 +84,51 @@ func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
 	}
 
 	return client, nil
+}
+
+// FindScheme determines the scheme (http or https) for a given IP or domain, considering the port if specified.
+func FindScheme(target string) (string, string, error) {
+	timeout := 5 * time.Second
+	var err error
+
+	// Check if the target already includes a scheme
+	if strings.Contains(target, "://") {
+		if err = urlutil.CanReachURLWithTimeout(target, timeout); err == nil { // Use '=' to assign the value to the already declared err variable
+			return strings.Split(target, "://")[0], target, nil // Scheme is already specified and reachable
+		}
+		return "", "", err // Scheme specified but not reachable
+	}
+
+	// Extract host and port to handle ports explicitly
+	host, port, _ := net.SplitHostPort(target)
+	if host == "" {
+		host = target // If no port was found, the whole target is the host
+	}
+
+	// Define URLs for testing based on the port (if specified)
+	var urlsToTest []string
+	switch port {
+	case "443":
+		urlsToTest = []string{"https://" + host}
+	case "80":
+		urlsToTest = []string{"http://" + host}
+	default:
+		// If no port is specified or it's a non-standard port, try HTTPS first then HTTP
+		urlsToTest = []string{"https://" + host, "http://" + host}
+	}
+
+	for _, url := range urlsToTest {
+		if err := urlutil.CanReachURLWithTimeout(url, timeout); err == nil {
+			// If reachable, return the scheme and the full URL
+			if port != "" {
+				url = url + ":" + port // Append the port if it was originally specified
+			}
+			return strings.Split(url, "://")[0], url, nil
+		}
+	}
+
+	// If neither HTTPS nor HTTP is reachable, return an error
+	return "", "", net.ErrClosed // Neither scheme is reachable
 }
 
 // RedirectsToHTTPS checks for various types of redirects (Location header, Refresh header, and meta refresh tags)
@@ -166,6 +212,14 @@ func IsBinaryResponse(resp *http.Response) bool {
 		}
 	}
 	return false
+}
+
+// httpGetWithTimeout performs an HTTP GET request with a specified timeout.
+func httpGetWithTimeout(url string, timeout time.Duration) (*http.Response, error) {
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	return client.Get(url)
 }
 
 // extractMetaRefreshURL searches the HTML content for a meta refresh tag and extracts the redirect URL if present.
