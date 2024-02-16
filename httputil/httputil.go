@@ -4,10 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
+	"time"
+
+	"golang.org/x/net/html"
 )
 
 var ipCache sync.Map
@@ -81,6 +85,58 @@ func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
 	return client, nil
 }
 
+// RedirectsToHTTPS checks for various types of redirects (Location header, Refresh header, and meta refresh tags)
+// and returns true if there's a redirect to an HTTPS URL along with the final URL.
+func RedirectsToHTTPS(httpURL string) (bool, string, error) {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// Don't follow redirects automatically
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Get(httpURL)
+	if err != nil {
+		return false, "", err
+	}
+	defer resp.Body.Close()
+
+	finalURL := httpURL
+
+	// Check for Location header redirect
+	if location, ok := resp.Header["Location"]; ok && len(location) > 0 {
+		finalURL = location[0]
+		if strings.HasPrefix(location[0], "https://") {
+			return true, finalURL, nil
+		}
+	}
+
+	// Check for Refresh header redirect
+	if refresh, ok := resp.Header["Refresh"]; ok && len(refresh) > 0 {
+		// Refresh header format: "5;url=https://example.com/"
+		parts := strings.SplitN(refresh[0], "url=", 2)
+		if len(parts) == 2 && strings.HasPrefix(parts[1], "https://") {
+			return true, parts[1], nil
+		}
+	}
+
+	// For non-redirect responses or HTTP redirects, check for meta refresh tags in the HTML body
+	if resp.StatusCode == 200 || (resp.StatusCode >= 300 && resp.StatusCode < 400) {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, "", err
+		}
+
+		// Parse the HTML body to find meta refresh tags
+		metaURL, found := extractMetaRefreshURL(string(body)) // Adjusted to convert body to string and match the expected function signature
+		if found && strings.HasPrefix(metaURL, "https://") {
+			return true, metaURL, nil
+		}
+	}
+	return false, finalURL, nil
+}
+
 func IsBinaryResponse(resp *http.Response) bool {
 	if resp == nil || resp.Header == nil {
 		return false
@@ -110,4 +166,49 @@ func IsBinaryResponse(resp *http.Response) bool {
 		}
 	}
 	return false
+}
+
+// extractMetaRefreshURL searches the HTML content for a meta refresh tag and extracts the redirect URL if present.
+func extractMetaRefreshURL(htmlContent string) (string, bool) {
+	doc, err := html.Parse(strings.NewReader(htmlContent))
+	if err != nil {
+		// Handle error if necessary
+		return "", false
+	}
+
+	var findMetaRefresh func(*html.Node) (string, bool)
+	findMetaRefresh = func(n *html.Node) (string, bool) {
+		if n.Type == html.ElementNode && n.Data == "meta" {
+			httpEquivPresent := false
+			contentValue := ""
+
+			for _, a := range n.Attr {
+				if strings.EqualFold(a.Key, "http-equiv") && strings.EqualFold(a.Val, "refresh") {
+					httpEquivPresent = true
+				} else if a.Key == "content" {
+					contentValue = a.Val
+				}
+			}
+
+			if httpEquivPresent && contentValue != "" {
+				// Extract URL from content, expected format: "0; URL='http://example.com/'"
+				parts := strings.Split(contentValue, "URL=")
+				if len(parts) > 1 {
+					url := strings.TrimSpace(parts[1])
+					// Remove potential surrounding quotes
+					url = strings.Trim(url, `"'`)
+					return url, true
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			url, found := findMetaRefresh(c)
+			if found {
+				return url, true
+			}
+		}
+		return "", false
+	}
+
+	return findMetaRefresh(doc)
 }
