@@ -328,14 +328,18 @@ func IsPublicIP(ip string) bool {
 		return false
 	}
 
-	// Check if the IP address is within the private address ranges
-	privateBlocks := []*net.IPNet{
+	// Define private and special-use IPv4 blocks
+	specialBlocks := []*net.IPNet{
 		{IP: net.ParseIP("10.0.0.0"), Mask: net.CIDRMask(8, 32)},
 		{IP: net.ParseIP("172.16.0.0"), Mask: net.CIDRMask(12, 32)},
 		{IP: net.ParseIP("192.168.0.0"), Mask: net.CIDRMask(16, 32)},
+		{IP: net.ParseIP("127.0.0.0"), Mask: net.CIDRMask(8, 32)},    // Loopback
+		{IP: net.ParseIP("169.254.0.0"), Mask: net.CIDRMask(16, 32)}, // Link-local
+		{IP: net.ParseIP("224.0.0.0"), Mask: net.CIDRMask(4, 32)},    // Multicast
+		{IP: net.ParseIP("240.0.0.0"), Mask: net.CIDRMask(4, 32)},    // Future use/reserved
 	}
 
-	for _, block := range privateBlocks {
+	for _, block := range specialBlocks {
 		if block.Contains(parsedIP) {
 			return false
 		}
