@@ -302,7 +302,12 @@ func IsIPv6(ip string) bool {
 }
 
 // IsPrivateIP checks if the given IP is a private address.
-func IsPrivateIP(ip net.IP) bool {
+func IsPrivateIP(ipStr string) bool {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return false // Not a valid IP address
+	}
+
 	privateBlocks := []string{
 		"10.0.0.0/8",
 		"172.16.0.0/12",
@@ -312,13 +317,14 @@ func IsPrivateIP(ip net.IP) bool {
 	for _, block := range privateBlocks {
 		_, cidr, err := net.ParseCIDR(block)
 		if err != nil {
-			return false
+			// Log the error or handle it as appropriate
+			continue // Skip this block if there's an error
 		}
 		if cidr.Contains(ip) {
-			return true
+			return true // The IP is within a private block
 		}
 	}
-	return false
+	return false // The IP is not within any private block
 }
 
 // IsPublicIP checks if the provided IP address is a public IP address.
@@ -482,5 +488,5 @@ func isConsecutive(ip1, ip2 net.IP) bool {
 // For the purposes of this check, we'll assume that if both IPs are private,
 // they are considered to be in the same 'subnet' for simplicity.
 func isSameSubnet(ip1, ip2 net.IP) bool {
-	return IsPrivateIP(ip1) && IsPrivateIP(ip2)
+	return IsPrivateIP(ip1.String()) && IsPrivateIP(ip2.String())
 }
