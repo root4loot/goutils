@@ -383,12 +383,18 @@ func IsIPInRange(ip string, ipRange string) (bool, error) {
 }
 
 // ReverseDNSLookup performs a reverse DNS lookup on the given IP address.
-// It works for both IPv4 and IPv6 addresses.
+// It works for both IPv4 and IPv6 addresses and removes the trailing dot from hostnames.
 func ReverseDNSLookup(ip string) ([]string, error) {
 	names, err := net.LookupAddr(ip)
 	if err != nil {
 		return nil, err
 	}
+
+	// Iterate over the names slice and remove the trailing dot from each hostname
+	for i, name := range names {
+		names[i] = strings.TrimSuffix(name, ".")
+	}
+
 	return names, nil
 }
 
