@@ -1,3 +1,4 @@
+log/debug/
 .vscode
 main.go
 .DS_Store
