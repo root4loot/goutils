@@ -115,3 +115,13 @@ func EnsureTrailingSlash(rawURL string) (string, error) {
 
 	return parsedURL.String(), nil
 }
+
+// GetOrigin returns the origin of a URL.
+func GetOrigin(rawURL string) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	return u.Scheme + "://" + u.Host, nil
+}
