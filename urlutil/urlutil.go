@@ -153,6 +153,36 @@ func GetExtParsed(u *url.URL) string {
 	return ""
 }
 
+// EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
+// or with a non-alphanumeric symbol, and if it makes sense to do so.
+func EnsureTrailingSlash(rawURL string) string {
+	parsedURL, _ := url.Parse(rawURL)
+
+	// Regex to check if the URL ends with a non-alphanumeric character
+	re := regexp.MustCompile(`[\W_]$`)
+
+	// Check if the path has a file extension, ends with a non-alphanumeric character, or already has a trailing slash
+	if filepath.Ext(parsedURL.Path) == "" && !re.MatchString(parsedURL.Path) && !strings.HasSuffix(parsedURL.Path, "/") {
+		parsedURL.Path += "/"
+	}
+
+	return parsedURL.String()
+}
+
+// EnsureTrailingSlashParsed appends a trailing slash to a parsed URL path if it doesn't end in a file extension
+// or with a non-alphanumeric symbol, and if it makes sense to do so.
+func EnsureTrailingSlashParsed(u *url.URL) string {
+	// Regex to check if the URL ends with a non-alphanumeric character
+	re := regexp.MustCompile(`[\W_]$`)
+
+	// Check if the path has a file extension, ends with a non-alphanumeric character, or already has a trailing slash
+	if filepath.Ext(u.Path) == "" && !re.MatchString(u.Path) && !strings.HasSuffix(u.Path, "/") {
+		u.Path += "/"
+	}
+
+	return u.String()
+}
+
 // IsMediaExt checks if a file extension is a media type
 func IsMediaExt(ext string) bool {
 	ext = strings.ToLower(ext)
@@ -162,25 +192,6 @@ func IsMediaExt(ext string) bool {
 		}
 	}
 	return false
-}
-
-// EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
-// or with a symbol, and if it makes sense to do so.
-func EnsureTrailingSlash(rawURL string) (string, error) {
-	parsedURL, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-
-	// Regex to check if the URL ends with a non-alphanumeric character
-	re := regexp.MustCompile(`[\W_]$`)
-
-	// Check if the path has a file extension or ends with a symbol
-	if filepath.Ext(parsedURL.Path) == "" && !re.MatchString(parsedURL.Path) && !strings.HasSuffix(parsedURL.Path, "/") {
-		parsedURL.Path += "/"
-	}
-
-	return parsedURL.String(), nil
 }
 
 // GetOrigin returns the origin of a URL.
