@@ -179,7 +179,7 @@ func EnsureTrailingSlash(rawURL string) string {
 // IsMediaExt checks if a file extension is a media type
 func IsMediaExt(ext string) bool {
 	ext = strings.ToLower(ext)
-	for _, mediaExt := range getMediaExtensions() {
+	for _, mediaExt := range GetMediaExtensions() {
 		if ext == mediaExt {
 			return true
 		}
@@ -218,8 +218,8 @@ func RemoveTrailingSlash(rawURL string) string {
 	return rawURL
 }
 
-// getMediaExtensions returns a slice of common media file extensions
-func getMediaExtensions() []string {
+// GetMediaExtensions returns a slice of common media file extensions
+func GetMediaExtensions() []string {
 	return []string{
 		".png", ".jpg", ".jpeg", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".gif", ".ico", ".webp",
 		".mp4", ".webm", ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".flv", ".avi", ".mov",
