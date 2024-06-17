@@ -97,6 +97,28 @@ func HasScheme(rawURL string) bool {
 	return re.MatchString(rawURL)
 }
 
+// HasFileExtension checks if the given rawURL string has a file extension in its path
+func HasFileExtension(rawURL string) bool {
+	u, _ := url.Parse(rawURL)
+	return HasFileExtensionParsed(u)
+}
+
+// HasFileExtensionParsed checks if the given parsed URL has a file extension in its path
+func HasFileExtensionParsed(u *url.URL) bool {
+	// Split the path and look for the first instance of "."
+	segments := strings.Split(u.Path, "/")
+	for _, segment := range segments {
+		if strings.Contains(segment, ".") {
+			ext := filepath.Ext(segment)
+			if ext != "" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
 // or with a symbol, and if it makes sense to do so.
 func EnsureTrailingSlash(rawURL string) (string, error) {
