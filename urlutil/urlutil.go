@@ -114,33 +114,16 @@ func EnsureScheme(rawURL string, scheme ...string) string {
 		return defaultScheme + "://" + rawURL
 	}
 
-	return EnsureSchemeParsed(u, defaultScheme)
-}
-
-// EnsureSchemeParsed ensures a parsed URL has a scheme. If no scheme is provided, it defaults to "http".
-func EnsureSchemeParsed(u *url.URL, scheme ...string) string {
-	defaultScheme := "http"
-	if len(scheme) > 0 && scheme[0] != "" {
-		defaultScheme = scheme[0]
-	}
-
 	if u.Scheme == "" {
 		u.Scheme = defaultScheme
 	}
 
-	// Rebuild the URL string
 	return u.String()
 }
 
 // HasFileExtension checks if the given rawURL string has a file extension in its path
 func HasFileExtension(rawURL string) bool {
 	u, _ := url.Parse(rawURL)
-	return HasFileExtensionParsed(u)
-}
-
-// HasFileExtensionParsed checks if the given parsed URL has a file extension in its path
-func HasFileExtensionParsed(u *url.URL) bool {
-	// Split the path and look for the first instance of "."
 	segments := strings.Split(u.Path, "/")
 	for _, segment := range segments {
 		if strings.Contains(segment, ".") {
@@ -150,7 +133,6 @@ func HasFileExtensionParsed(u *url.URL) bool {
 			}
 		}
 	}
-
 	return false
 }
 
@@ -160,11 +142,6 @@ func HasParam(rawURL string) bool {
 	if err != nil {
 		return false
 	}
-	return HasParamParsed(u)
-}
-
-// HasParamParsed checks if a parsed URL has parameters
-func HasParamParsed(u *url.URL) bool {
 	return u.RawQuery != ""
 }
 
@@ -174,12 +151,7 @@ func GetExt(rawURL string) string {
 	if err != nil {
 		return ""
 	}
-	return GetExtParsed(u)
-}
 
-// GetExtParsed returns the file extension of a parsed URL
-func GetExtParsed(u *url.URL) string {
-	// Extract the file extension from the last segment of the path
 	segments := strings.Split(u.Path, "/")
 	if len(segments) > 0 {
 		lastSegment := segments[len(segments)-1]
@@ -202,20 +174,6 @@ func EnsureTrailingSlash(rawURL string) string {
 	}
 
 	return parsedURL.String()
-}
-
-// EnsureTrailingSlashParsed appends a trailing slash to a parsed URL path if it doesn't end in a file extension
-// or with a non-alphanumeric symbol, and if it makes sense to do so.
-func EnsureTrailingSlashParsed(u *url.URL) string {
-	// Regex to check if the URL ends with a non-alphanumeric character
-	re := regexp.MustCompile(`[\W_]$`)
-
-	// Check if the path has a file extension, ends with a non-alphanumeric character, or already has a trailing slash
-	if filepath.Ext(u.Path) == "" && !re.MatchString(u.Path) && !strings.HasSuffix(u.Path, "/") {
-		u.Path += "/"
-	}
-
-	return u.String()
 }
 
 // IsMediaExt checks if a file extension is a media type
