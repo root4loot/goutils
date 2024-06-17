@@ -133,6 +133,37 @@ func HasParamParsed(u *url.URL) bool {
 	return u.RawQuery != ""
 }
 
+// GetExt returns the file extension of a raw URL string
+func GetExt(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+	return GetExtParsed(u)
+}
+
+// GetExtParsed returns the file extension of a parsed URL
+func GetExtParsed(u *url.URL) string {
+	// Extract the file extension from the last segment of the path
+	segments := strings.Split(u.Path, "/")
+	if len(segments) > 0 {
+		lastSegment := segments[len(segments)-1]
+		return strings.ToLower(filepath.Ext(lastSegment))
+	}
+	return ""
+}
+
+// IsMediaExt checks if a file extension is a media type
+func IsMediaExt(ext string) bool {
+	ext = strings.ToLower(ext)
+	for _, mediaExt := range getMediaExtensions() {
+		if ext == mediaExt {
+			return true
+		}
+	}
+	return false
+}
+
 // EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
 // or with a symbol, and if it makes sense to do so.
 func EnsureTrailingSlash(rawURL string) (string, error) {
@@ -160,4 +191,13 @@ func GetOrigin(rawURL string) (string, error) {
 	}
 
 	return u.Scheme + "://" + u.Host, nil
+}
+
+// getMediaExtensions returns a slice of common media file extensions
+func getMediaExtensions() []string {
+	return []string{
+		".png", ".jpg", ".jpeg", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".gif", ".ico", ".webp",
+		".mp4", ".webm", ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".flv", ".avi", ".mov",
+		".wmv", ".swf", ".mkv", ".m4v", ".3gp", ".3g2",
+	}
 }
