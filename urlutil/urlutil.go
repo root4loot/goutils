@@ -119,6 +119,20 @@ func HasFileExtensionParsed(u *url.URL) bool {
 	return false
 }
 
+// HasParam checks if a rawURL string has parameters
+func HasParam(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+	return HasParamParsed(u)
+}
+
+// HasParamParsed checks if a parsed URL has parameters
+func HasParamParsed(u *url.URL) bool {
+	return u.RawQuery != ""
+}
+
 // EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
 // or with a symbol, and if it makes sense to do so.
 func EnsureTrailingSlash(rawURL string) (string, error) {
