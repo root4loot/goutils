@@ -21,3 +21,13 @@ func IsPrintable(str string) bool {
 	}
 	return true
 }
+
+// IsBinaryString checks if a string is binary
+func IsBinaryString(str string) bool {
+	for _, b := range []byte(str) {
+		if b < 32 || b > 126 {
+			return true
+		}
+	}
+	return false
+}
