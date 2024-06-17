@@ -210,6 +210,14 @@ func NormalizeSlashes(rawURL string) string {
 	return rawURL
 }
 
+// RemoveTrailingSlash removes an unwanted "/" suffix from a URL
+func RemoveTrailingSlash(rawURL string) string {
+	if strings.HasSuffix(rawURL, "/") {
+		return rawURL[:len(rawURL)-1]
+	}
+	return rawURL
+}
+
 // getMediaExtensions returns a slice of common media file extensions
 func getMediaExtensions() []string {
 	return []string{
