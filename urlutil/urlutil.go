@@ -197,6 +197,19 @@ func GetOrigin(rawURL string) (string, error) {
 	return u.Scheme + "://" + u.Host, nil
 }
 
+// NormalizeSlashes trims double slashes from a URL, preserving the initial scheme
+func NormalizeSlashes(rawURL string) string {
+	if strings.HasPrefix(rawURL, "http://") {
+		rawURL = "http://" + strings.Replace(rawURL[len("http://"):], "//", "/", -1)
+	} else if strings.HasPrefix(rawURL, "https://") {
+		rawURL = "https://" + strings.Replace(rawURL[len("https://"):], "//", "/", -1)
+	} else {
+		// Replace all other occurrences of "//"
+		rawURL = strings.Replace(rawURL, "//", "/", -1)
+	}
+	return rawURL
+}
+
 // getMediaExtensions returns a slice of common media file extensions
 func getMediaExtensions() []string {
 	return []string{
