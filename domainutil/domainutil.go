@@ -81,20 +81,20 @@ func IsValidDomain(domain string) bool {
 	return u.Host != "" && u.Path == "" && u.RawQuery == ""
 }
 
-// GetDomainRoot returns the root domain of a domain
-func GetDomainRoot(domain string) string {
+// GetRootDomain returns the root domain of a domain
+func GetRootDomain(domain string) string {
 	r, _ := regexp.Compile(`\w+\.\w+$`)
 	m := r.FindString(domain)
 	return strings.ToLower(m)
 }
 
-// DomainRoots returns a list of unique root domains for a slice of domains
-func DomainRoots(items []string) (roots []string) {
+// GetRootDomains returns a list of unique root domains for a slice of domains
+func GetRootDomains(items []string) (rootDomains []string) {
 	for _, item := range items {
-		root := GetDomainRoot(item)
-		roots = append(roots, root)
+		root := GetRootDomain(item)
+		rootDomains = append(rootDomains, root)
 	}
-	return unique(roots)
+	return unique(rootDomains)
 }
 
 func unique(items []string) (uniqueItems []string) {
