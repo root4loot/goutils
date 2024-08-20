@@ -67,21 +67,16 @@ func ReadFile(fp string) ([]string, error) {
 	return fileLines, nil
 }
 
-// WriteFile takes a filepath and a slice of strings, then writes each string to the file.
-// Each string is written on a new line. If the file does not exist, it is created.
-// If the file exists, its contents are overwritten.
-func WriteFile(filePath string, lines []string) error {
-	// Create or overwrite the file
+// WriteToFile takes a filepath and a slice of strings, then writes the strings to the file.
+func WriteToFile(filePath string, lines []string) error {
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Create a new writer
 	writer := bufio.NewWriter(file)
 
-	// Write each line to the file
 	for _, line := range lines {
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
@@ -89,13 +84,11 @@ func WriteFile(filePath string, lines []string) error {
 		}
 	}
 
-	// Flush remaining buffered data to the file
 	return writer.Flush()
 }
 
-// WriteFileAppend takes a filepath and a single string item, then appends the string to the file.
-// The string is written on a new line. If the file does not exist, it is created.
-func WriteFileAppend(filePath string, line string) error {
+// WriteToFileAppend appends a line to a file.
+func WriteToFileAppend(filePath string, line string) error {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
