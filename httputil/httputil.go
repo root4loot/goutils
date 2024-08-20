@@ -17,22 +17,19 @@ import (
 
 var ipCache sync.Map
 
-// ClientWithOptionalResolvers creates an HTTP client with default and custom resolvers that are
-// optionally provided. If no resolvers are provided, the default resolver is used,
-// utilizing an IP cache to store and reuse resolved IP addresses.
+// ClientWithOptionalResolvers creates an HTTP client with optional custom DNS resolvers.
+// If no resolvers are provided, the default system resolver is used.
+// If a resolver is provided without a port, ":53" is appended to it.
+// The client uses the default Go resolver if the custom resolvers fail to resolve the domain.
 func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
-	// Check if resolvers are provided
 	if len(resolvers) > 0 {
-		// Check if the resolvers contain the port :53, if not, add it
 		for i, resolver := range resolvers {
 			_, _, err := net.SplitHostPort(resolver)
 			if err != nil {
-				// Port is not specified, add :53
 				resolvers[i] = resolver + ":53"
 			}
 		}
 	} else {
-		// No resolvers provided, use an empty slice
 		resolvers = []string{}
 	}
 
@@ -44,35 +41,31 @@ func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
 
 	transport := &http.Transport{
 		DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
-			// Check if the resolved IP address exists in the cache
 			if cachedIP, ok := ipCache.Load(address); ok {
 				if conn, ok := cachedIP.(net.Conn); ok {
-					return conn, nil // Reuse the connection
+					return conn, nil
 				}
 			}
 
-			// IP address not found in cache, perform DNS lookup
 			conn, err := dialer.DialContext(ctx, network, address)
 			if err != nil {
 				for _, resolver := range resolvers {
 					d := net.Dialer{}
 					conn, err = d.DialContext(ctx, network, resolver)
 					if err != nil {
-						continue // Try the next resolver
+						continue
 					}
 
-					// Store the resolved IP address in the cache for future reuse
 					ipCache.Store(address, conn)
 
-					return conn, nil // Success, return the connection
+					return conn, nil
 				}
 				return nil, fmt.Errorf("failed to resolve domain using custom resolvers")
 			}
 
-			// Store the resolved IP address in the cache for future reuse
 			ipCache.Store(address, conn)
 
-			return conn, nil // Success, return the connection
+			return conn, nil
 		},
 		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
 		DisableKeepAlives:   true,
@@ -86,26 +79,23 @@ func ClientWithOptionalResolvers(resolvers ...string) (*http.Client, error) {
 	return client, nil
 }
 
-// FindScheme determines the scheme (http or https) for a given IP or domain, considering the port if specified.
+// FindScheme attempts to find the scheme of a given target URL.
 func FindScheme(target string) (string, string, error) {
 	timeout := 5 * time.Second
 	var err error
 
-	// Check if the target already includes a scheme
 	if strings.Contains(target, "://") {
-		if err = urlutil.CanReachURLWithTimeout(target, timeout); err == nil { // Use '=' to assign the value to the already declared err variable
-			return strings.Split(target, "://")[0], target, nil // Scheme is already specified and reachable
+		if err = urlutil.CanReachURLWithTimeout(target, timeout); err == nil {
+			return strings.Split(target, "://")[0], target, nil
 		}
-		return "", "", err // Scheme specified but not reachable
+		return "", "", err
 	}
 
-	// Extract host and port to handle ports explicitly
 	host, port, _ := net.SplitHostPort(target)
 	if host == "" {
-		host = target // If no port was found, the whole target is the host
+		host = target
 	}
 
-	// Define URLs for testing based on the port (if specified)
 	var urlsToTest []string
 	switch port {
 	case "443":
@@ -113,26 +103,22 @@ func FindScheme(target string) (string, string, error) {
 	case "80":
 		urlsToTest = []string{"http://" + host}
 	default:
-		// If no port is specified or it's a non-standard port, try HTTPS first then HTTP
 		urlsToTest = []string{"https://" + host, "http://" + host}
 	}
 
 	for _, url := range urlsToTest {
 		if err := urlutil.CanReachURLWithTimeout(url, timeout); err == nil {
-			// If reachable, return the scheme and the full URL
 			if port != "" {
-				url = url + ":" + port // Append the port if it was originally specified
+				url = url + ":" + port
 			}
 			return strings.Split(url, "://")[0], url, nil
 		}
 	}
 
-	// If neither HTTPS nor HTTP is reachable, return an error
-	return "", "", net.ErrClosed // Neither scheme is reachable
+	return "", "", net.ErrClosed
 }
 
-// RedirectsToHTTPS checks for various types of redirects (Location header, Refresh header, and meta refresh tags)
-// and returns true if there's a redirect to an HTTPS URL along with the final URL.
+// RedirectsToHTTPS checks if a given HTTP URL redirects to an HTTPS URL.
 func RedirectsToHTTPS(httpURL string) (bool, string, error) {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
@@ -150,7 +136,6 @@ func RedirectsToHTTPS(httpURL string) (bool, string, error) {
 
 	finalURL := httpURL
 
-	// Check for Location header redirect
 	if location, ok := resp.Header["Location"]; ok && len(location) > 0 {
 		finalURL = location[0]
 		if strings.HasPrefix(location[0], "https://") {
@@ -158,7 +143,6 @@ func RedirectsToHTTPS(httpURL string) (bool, string, error) {
 		}
 	}
 
-	// Check for Refresh header redirect
 	if refresh, ok := resp.Header["Refresh"]; ok && len(refresh) > 0 {
 		// Refresh header format: "5;url=https://example.com/"
 		parts := strings.SplitN(refresh[0], "url=", 2)
@@ -167,15 +151,13 @@ func RedirectsToHTTPS(httpURL string) (bool, string, error) {
 		}
 	}
 
-	// For non-redirect responses or HTTP redirects, check for meta refresh tags in the HTML body
 	if resp.StatusCode == 200 || (resp.StatusCode >= 300 && resp.StatusCode < 400) {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return false, "", err
 		}
 
-		// Parse the HTML body to find meta refresh tags
-		metaURL, found := extractMetaRefreshURL(string(body)) // Adjusted to convert body to string and match the expected function signature
+		metaURL, found := extractMetaRefreshURL(string(body))
 		if found && strings.HasPrefix(metaURL, "https://") {
 			return true, metaURL, nil
 		}
@@ -190,7 +172,6 @@ func IsBinaryResponse(resp *http.Response) bool {
 
 	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
 
-	// List of common binary MIME types
 	binaryMimes := []string{
 		"application/octet-stream", "application/pdf", "application/zip",
 		"application/x-rar-compressed", "application/x-7z-compressed",

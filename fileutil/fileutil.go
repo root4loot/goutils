@@ -9,20 +9,17 @@ import (
 
 // SerializeToFile serializes data to a JSON file.
 func SerializeToFile(filePath string, data interface{}) error {
-	// Convert struct to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	// Create or open file
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Write JSON data to file
 	err = os.WriteFile(filePath, jsonData, 0644)
 	if err != nil {
 		return err
@@ -33,13 +30,11 @@ func SerializeToFile(filePath string, data interface{}) error {
 
 // DeserializeFromFile deserializes data from a JSON file.
 func DeserializeFromFile(filePath string, data interface{}) error {
-	// Read file
 	fileData, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	// Parse JSON data into struct
 	err = json.Unmarshal(fileData, data)
 	if err != nil {
 		return err
@@ -48,7 +43,7 @@ func DeserializeFromFile(filePath string, data interface{}) error {
 	return nil
 }
 
-// ReadFile reads a file and returns a slice of strings representing lines.
+// ReadFile reads a file and returns a slice of strings.
 func ReadFile(fp string) ([]string, error) {
 	readFile, err := os.Open(fp)
 	if err != nil {
@@ -67,7 +62,7 @@ func ReadFile(fp string) ([]string, error) {
 	return fileLines, nil
 }
 
-// WriteToFile takes a filepath and a slice of strings, then writes the strings to the file.
+// WriteToFile writes a slice of strings to a file.
 func WriteToFile(filePath string, lines []string) error {
 	file, err := os.Create(filePath)
 	if err != nil {

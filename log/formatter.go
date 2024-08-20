@@ -16,7 +16,6 @@ type CustomFormatter struct {
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var levelText string
 
-	// Check for 'Results' level using 'Trace' and 'custom_level'
 	if entry.Level == logrus.TraceLevel {
 		if customLevel, ok := entry.Data["custom_level"]; ok && customLevel == "result" {
 			levelText = "RES"
@@ -26,7 +25,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		levelText = logLevelAbbreviations[originalLevelText] // Get abbreviation or default to original
 	}
 
-	// Determine the color for the level text
 	var levelColor string
 	if entry.Level == logrus.TraceLevel && levelText == "RES" {
 		levelColor = color.Blue
@@ -34,7 +32,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		levelColor = getColor(entry.Level)
 	}
 
-	// Formatting the log output with parentheses around the abbreviated level
 	logOutput := fmt.Sprintf("%s[%s]%s %s(%s)%s %s", color.LightGrey, f.packageName, color.Reset, levelColor, levelText, color.Reset, entry.Message)
 
 	return []byte(logOutput + "\n"), nil
@@ -49,7 +46,7 @@ func getColor(level logrus.Level) string {
 	case logrus.InfoLevel:
 		return color.Blue
 	case logrus.TraceLevel: // Handle Trace level separately
-		return color.Blue // Default color for Trace level
+		return color.Blue
 	default:
 		return color.Reset
 	}

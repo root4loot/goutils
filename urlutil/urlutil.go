@@ -29,7 +29,6 @@ func CanReachURL(rawURL string) error {
 		return err
 	}
 
-	// Dial the host to check connectivity
 	conn, err := net.Dial("tcp", u.Host)
 	if err != nil {
 		return err
@@ -49,21 +48,17 @@ func CanReachURLWithTimeout(rawURL string, timeout time.Duration) error {
 		return err
 	}
 
-	// check if URL is an IP address
-	// if so, check if it can be dialed
 	if iputil.IsURLIP(rawURL) {
 		if netutil.CanDialWithTimeout(u.Hostname(), u.Port(), timeout) {
 			return err
 		}
 	}
 
-	// resolve the domain
 	ip, err := domainutil.ResolveDomainWithTimeout(u.Hostname(), timeout)
 	if err != nil {
 		return err
 	}
 
-	// check if the port can be dialed
 	if netutil.CanDialWithTimeout(ip, u.Port(), timeout) {
 		return err
 	}
@@ -71,8 +66,7 @@ func CanReachURLWithTimeout(rawURL string, timeout time.Duration) error {
 	return err
 }
 
-// EnsurePortIsSet takes a URL and ensures that a port is set, depending on the scheme.
-// It returns the URL with the port set (if it was missing).
+// EnsurePortIsSet ensures a URL has a port set. If no port is provided, it defaults to 80 for HTTP and 443 for HTTPS.
 func EnsurePortIsSet(rawURL string) string {
 	u, err := url.Parse(rawURL)
 	if err != nil {
@@ -110,7 +104,6 @@ func EnsureScheme(rawURL string, scheme ...string) string {
 
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		// If parsing fails, assume it's because of a missing scheme
 		return defaultScheme + "://" + rawURL
 	}
 
@@ -160,15 +153,11 @@ func GetExt(rawURL string) string {
 	return ""
 }
 
-// EnsureTrailingSlash appends a trailing slash to the URL path if it doesn't end in a file extension
-// or with a non-alphanumeric symbol, and if it makes sense to do so.
+// EnsureTrailingSlash ensures a URL has a trailing slash
 func EnsureTrailingSlash(rawURL string) string {
 	parsedURL, _ := url.Parse(rawURL)
 
-	// Regex to check if the URL ends with a non-alphanumeric character
 	re := regexp.MustCompile(`[\W_]$`)
-
-	// Check if the path has a file extension, ends with a non-alphanumeric character, or already has a trailing slash
 	if filepath.Ext(parsedURL.Path) == "" && !re.MatchString(parsedURL.Path) && !strings.HasSuffix(parsedURL.Path, "/") {
 		parsedURL.Path += "/"
 	}
@@ -204,7 +193,6 @@ func NormalizeSlashes(rawURL string) string {
 	} else if strings.HasPrefix(rawURL, "https://") {
 		rawURL = "https://" + strings.Replace(rawURL[len("https://"):], "//", "/", -1)
 	} else {
-		// Replace all other occurrences of "//"
 		rawURL = strings.Replace(rawURL, "//", "/", -1)
 	}
 	return rawURL

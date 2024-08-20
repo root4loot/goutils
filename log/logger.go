@@ -66,8 +66,7 @@ func Init(name string) {
 	log = NewLogger(name)
 }
 
-// Notify prints a notification message to stderr if the output is being piped.
-// It accepts an optional logger and defaults to the global logger if none is provided.
+// Notify logs a message using a specified or global logger.
 func Notify(v ...interface{}) {
 	var logger *Logger
 	if len(v) > 0 {
@@ -135,29 +134,24 @@ func WithFields(fields Fields) *logrus.Entry {
 // Logf logs message at the Info level using the label's logger.
 // If the label's logger is not set, it defaults to the global logger.
 func (l *Label) Log(v ...interface{}) {
-	// Check if a logger is set, if not, use the global logger
 	if l.logger == nil {
 		l.logger = log
 	}
 
-	// Create a log entry with label and tagColor fields
 	entry := l.logger.WithFields(logrus.Fields{
-		"label":      l.label, // Label associated with this log
-		"labelColor": l.color, // Color associated with the label
+		"label":      l.label,
+		"labelColor": l.color,
 	})
 
-	// Log the provided values as an Info message
 	entry.Info(v...)
 }
 
 // Logf logs a formatted message at the Info level using the label's logger.
-// If the label's logger is not set, it defaults to the global logger.
 func (l *Label) Logf(format string, v ...interface{}) {
 	if l.logger == nil {
 		l.logger = log // Default to the global logger
 	}
 
-	// Create a log entry with additional fields and log it at the Info level
 	entry := l.logger.WithFields(logrus.Fields{
 		"label":      l.label,
 		"labelColor": l.color,
@@ -184,18 +178,17 @@ func Info(v ...interface{}) {
 func Result(v ...interface{}) {
 	var logger *Logger
 	if len(v) > 0 {
-		// Check if the first argument is a logger and use it; otherwise, use the global logger
 		var ok bool
 		if logger, ok = v[0].(*Logger); ok {
-			v = v[1:] // Use the provided logger and adjust the variadic slice
+			v = v[1:]
 		} else {
-			logger = log // Default to the global logger
+			logger = log
 		}
 	} else {
-		logger = log // Default to the global logger
+		logger = log
 	}
 
-	message := fmt.Sprint(v...) // Create the message string
+	message := fmt.Sprint(v...)
 	if !IsOutputPiped() {
 		levelAbbrev := logLevelAbbreviations["RESULT"]
 		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
@@ -246,18 +239,17 @@ func Infof(format string, v ...interface{}) {
 func Resultf(format string, v ...interface{}) {
 	var logger *Logger
 	if len(v) > 0 {
-		// Check if the first argument is a logger and use it; otherwise, use the global logger
 		var ok bool
 		if logger, ok = v[0].(*Logger); ok {
-			v = v[1:] // Use the provided logger and adjust the variadic slice
+			v = v[1:]
 		} else {
-			logger = log // Default to the global logger
+			logger = log
 		}
 	} else {
-		logger = log // Default to the global logger
+		logger = log
 	}
 
-	message := fmt.Sprintf(format, v...) // Create the formatted message string
+	message := fmt.Sprintf(format, v...)
 	if !IsOutputPiped() {
 		levelAbbrev := logLevelAbbreviations["RESULT"]
 		packageNameFormatted := color.Colorize(color.LightGrey, fmt.Sprintf("[%s]", logger.packageName))
