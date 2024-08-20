@@ -82,6 +82,23 @@ func WriteSliceToFile(filePath string, lines []string) error {
 	return writer.Flush()
 }
 
+// WriteStringToFile writes a string to a file.
+func WriteStringToFile(filePath string, content string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(content + "\n")
+	if err != nil {
+		return err
+	}
+
+	return writer.Flush()
+}
+
 // WriteToFileAppend appends a line to a file.
 func WriteToFileAppend(filePath string, line string) error {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
