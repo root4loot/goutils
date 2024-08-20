@@ -62,8 +62,8 @@ func ReadFile(fp string) ([]string, error) {
 	return fileLines, nil
 }
 
-// WriteToFile writes a slice of strings to a file.
-func WriteToFile(filePath string, lines []string) error {
+// WriteSliceToFile writes a slice of strings to a file.
+func WriteSliceToFile(filePath string, lines []string) error {
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
