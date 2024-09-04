@@ -336,31 +336,31 @@ func IsPublicIP(ip string) bool {
 }
 
 // IsIPInCIDR checks if the provided IP address is within the provided CIDR.
-func IsIPInCIDR(ip string, cidr string) (bool, error) {
+func IsIPInCIDR(ip string, cidr string) bool {
 	ipAddr := net.ParseIP(ip)
-	_, network, err := net.ParseCIDR(cidr)
-	return err == nil && network.Contains(ipAddr), err
+	_, network, _ := net.ParseCIDR(cidr)
+	return network.Contains(ipAddr)
 }
 
 // IsIPInRange checks if the provided IP address is within the provided IP range.
-func IsIPInRange(ip string, ipRange string) (bool, error) {
+func IsIPInRange(ip string, ipRange string) bool {
 	ipAddr := net.ParseIP(ip)
 	if ipAddr == nil {
-		return false, fmt.Errorf("invalid IP address: %s", ip)
+		return false
 	}
 
 	ips, err := ParseIPRange(ipRange)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	for _, addr := range ips {
 		if addr.Equal(ipAddr) {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, err
+	return false
 }
 
 // ReverseDNSLookup performs a reverse DNS lookup on the provided IP address.
