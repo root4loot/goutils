@@ -2,7 +2,7 @@
 
 A collection of utility packages for Go, aimed at simplifying and enhancing various tasks.
 
-[![GoDoc](https://pkg.go.dev/badge/github.com/root4loot/goutils)](https://pkg.go.dev/github.com/root4loot/goutils)
+[![GoDoc](https://pkg.go.dev/badge/github.com/root4loot/goutils)](https://pkg.go.dev/github.com/root4loot/goutils) [![](https://github.com/root4loot/goutils/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/root4loot/goutils/actions/workflows/test.yml)
 
 
 ```sh
