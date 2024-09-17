@@ -1,4 +1,3 @@
 .*
 !.gitignore
-log/debug/
-main.go
+!.github/
