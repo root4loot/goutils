@@ -1,12 +1,11 @@
-# Contributing to Goutils
+# Contributing Guidelines
+
+Thank you for considering contributing to this project.
+
 ## How to Contribute
 
-- Fork the repository: Create your own copy of the repository to work on.
-- Make changes: Implement your changes or improvements.
-- Submit a pull request: Open a pull request with a clear description of your changes.
-
-## Guidelines
-- Ensure your code is well-documented and follows the project's style.
-- Test your changes thoroughly before submitting.
-
-Thank you for contributing to Goutils!
+1. **Fork the Repository**: Fork the repository to your GitHub account.
+3. **Make Changes**: Implement your changes in the codebase.
+4. **Commit Changes**: Commit your changes with a clear and concise commit message.
+5. **Push to GitHub**: Push your changes to your forked repository.
+6. **Create a Pull Request**: Go to the original repository on GitHub and create a pull request from your branch.
