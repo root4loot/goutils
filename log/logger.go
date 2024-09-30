@@ -12,8 +12,7 @@ import (
 
 type Level int
 
-// PipedOutputNotification is the standard message to notify about piped output.
-const PipedOutputNotification = "Notice: Output is being piped. 'Result' logs will be formatted accordingly."
+const PipedOutputNotification = "Notice: Output is being piped. Results will be formatted accordingly."
 
 const (
 	DebugLevel Level = iota
