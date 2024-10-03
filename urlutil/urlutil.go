@@ -1,6 +1,7 @@
 package urlutil
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"path/filepath"
@@ -219,4 +220,55 @@ func GetMediaExtensions() []string {
 		".mp4", ".webm", ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".flv", ".avi", ".mov",
 		".wmv", ".swf", ".mkv", ".m4v", ".3gp", ".3g2",
 	}
+}
+
+// RemoveDefaultPort removes the default port from a URL based on its scheme.
+func RemoveDefaultPort(urlStr string) (string, error) {
+	if !IsValidURL(urlStr) {
+		return "", fmt.Errorf("invalid URL: %s", urlStr)
+	}
+
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid URL: %w", err)
+	}
+
+	host := u.Host
+	var port string
+
+	if strings.Contains(u.Host, ":") {
+		host, port, err = net.SplitHostPort(u.Host)
+		if err != nil {
+			// Handle IPv6 addresses enclosed in brackets
+			if strings.HasPrefix(u.Host, "[") && strings.Contains(u.Host, "]") {
+				hostPort := strings.TrimPrefix(u.Host, "[")
+				hostPort = strings.Replace(hostPort, "]", "", 1)
+				host, port, err = net.SplitHostPort(hostPort)
+				host = "[" + host + "]"
+				if err != nil {
+					return "", fmt.Errorf("invalid host: %w", err)
+				}
+			} else {
+				return "", fmt.Errorf("invalid host: %w", err)
+			}
+		}
+	}
+
+	defaultPort := ""
+	switch u.Scheme {
+	case "http":
+		defaultPort = "80"
+	case "https":
+		defaultPort = "443"
+	case "ftp":
+		defaultPort = "21"
+	default:
+		return u.String(), nil
+	}
+
+	if port == defaultPort {
+		u.Host = host
+	}
+
+	return u.String(), nil
 }
