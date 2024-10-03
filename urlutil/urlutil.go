@@ -19,6 +19,12 @@ func IsURL(url string) bool {
 	return regex.MatchString(url)
 }
 
+// IsValidURL checks if a string is a valid URL.
+func IsValidURL(urlStr string) bool {
+	u, err := url.Parse(urlStr)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
 // CanReachURL checks if a URL can be reached without a timeout.
 func CanReachURL(rawURL string) error {
 	var err error
