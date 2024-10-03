@@ -98,20 +98,34 @@ func HasScheme(rawURL string) bool {
 	return re.MatchString(rawURL)
 }
 
-// EnsureHTTP ensures a URL has an HTTP scheme
+// EnsureHTTP ensures that the URL has an HTTP scheme, replacing any existing scheme.
 func EnsureHTTP(rawURL string) string {
 	if !HasScheme(rawURL) {
-		rawURL = "http://" + rawURL
+		return "http://" + rawURL
 	}
-	return rawURL
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "http://" + rawURL
+	}
+
+	u.Scheme = "http"
+	return u.String()
 }
 
-// EnsureHTTPS ensures a URL has an HTTPS scheme
+// EnsureHTTPS ensures that the URL has an HTTPS scheme, replacing any existing scheme.
 func EnsureHTTPS(rawURL string) string {
 	if !HasScheme(rawURL) {
-		rawURL = "https://" + rawURL
+		return "https://" + rawURL
 	}
-	return rawURL
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "https://" + rawURL
+	}
+
+	u.Scheme = "https"
+	return u.String()
 }
 
 // HasFileExtension checks if the given rawURL string has a file extension in its path

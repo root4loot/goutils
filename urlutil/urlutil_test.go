@@ -250,13 +250,14 @@ func TestEnsureHTTP(t *testing.T) {
 	}{
 		{"example.com", "http://example.com"},
 		{"http://example.com", "http://example.com"},
-		{"https://example.com", "https://example.com"},
+		{"https://example.com", "http://example.com"},
 		{"example.com/path", "http://example.com/path"},
 		{"localhost", "http://localhost"},
 		{"http://localhost", "http://localhost"},
-		{"https://localhost", "https://localhost"},
+		{"https://localhost", "http://localhost"},
 		{"192.168.0.1", "http://192.168.0.1"},
-		{"http://192.168.0.1", "http://192.168.0.1"},
+		{"https://192.168.0.1", "http://192.168.0.1"},
+		{"ftp://example.com", "http://example.com"},
 	}
 
 	for _, tt := range tests {
@@ -275,13 +276,14 @@ func TestEnsureHTTPS(t *testing.T) {
 		expected string
 	}{
 		{"example.com", "https://example.com"},
-		{"http://example.com", "http://example.com"},
+		{"http://example.com", "https://example.com"},
 		{"https://example.com", "https://example.com"},
 		{"example.com/path", "https://example.com/path"},
 		{"localhost", "https://localhost"},
-		{"https://localhost", "https://localhost"},
+		{"http://localhost", "https://localhost"},
 		{"192.168.0.1", "https://192.168.0.1"},
-		{"https://192.168.0.1", "https://192.168.0.1"},
+		{"http://192.168.0.1", "https://192.168.0.1"},
+		{"ftp://example.com", "https://example.com"},
 	}
 
 	for _, tt := range tests {
