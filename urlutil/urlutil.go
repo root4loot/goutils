@@ -224,10 +224,6 @@ func GetMediaExtensions() []string {
 
 // RemoveDefaultPort removes the default port from a URL based on its scheme.
 func RemoveDefaultPort(urlStr string) (string, error) {
-	if !IsValidURL(urlStr) {
-		return "", fmt.Errorf("invalid URL: %s", urlStr)
-	}
-
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", fmt.Errorf("invalid URL: %w", err)
