@@ -75,23 +75,6 @@ func TestHasScheme(t *testing.T) {
 	}
 }
 
-func TestEnsureScheme(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"example.com", "http://example.com"},
-		{"http://example.com", "http://example.com"},
-	}
-
-	for _, test := range tests {
-		result := EnsureScheme(test.input)
-		if result != test.expected {
-			t.Errorf("EnsureScheme(%s) = %s; want %s", test.input, result, test.expected)
-		}
-	}
-}
-
 func TestHasFileExtension(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -226,5 +209,87 @@ func TestIsMediaExt(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("IsMediaExt(%s) = %v; want %v", test.input, result, test.expected)
 		}
+	}
+}
+
+func TestRemoveDefaultPort(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+		hasError bool
+	}{
+		{"http://example.com:80", "http://example.com", false},
+		{"https://example.com:443", "https://example.com", false},
+		{"http://example.com:8080", "http://example.com:8080", false},
+		{"https://example.com:8443", "https://example.com:8443", false},
+		{"ftp://example.com:21", "ftp://example.com", false},
+		{"ftp://example.com:2121", "ftp://example.com:2121", false},
+		{"http://example.com", "http://example.com", false},
+		{"https://example.com", "https://example.com", false},
+		{"invalid_url", "", true},
+		{"example.com", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result, err := RemoveDefaultPort(tt.input)
+			if (err != nil) != tt.hasError {
+				t.Errorf("expected error status %v, got %v (error: %v)", tt.hasError, (err != nil), err)
+			}
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestEnsureHTTP(t *testing.T) {
+	tests := []struct {
+		rawURL   string
+		expected string
+	}{
+		{"example.com", "http://example.com"},
+		{"http://example.com", "http://example.com"},
+		{"https://example.com", "https://example.com"},
+		{"example.com/path", "http://example.com/path"},
+		{"localhost", "http://localhost"},
+		{"http://localhost", "http://localhost"},
+		{"https://localhost", "https://localhost"},
+		{"192.168.0.1", "http://192.168.0.1"},
+		{"http://192.168.0.1", "http://192.168.0.1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.rawURL, func(t *testing.T) {
+			result := EnsureHTTP(tt.rawURL)
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestEnsureHTTPS(t *testing.T) {
+	tests := []struct {
+		rawURL   string
+		expected string
+	}{
+		{"example.com", "https://example.com"},
+		{"http://example.com", "http://example.com"},
+		{"https://example.com", "https://example.com"},
+		{"example.com/path", "https://example.com/path"},
+		{"localhost", "https://localhost"},
+		{"https://localhost", "https://localhost"},
+		{"192.168.0.1", "https://192.168.0.1"},
+		{"https://192.168.0.1", "https://192.168.0.1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.rawURL, func(t *testing.T) {
+			result := EnsureHTTPS(tt.rawURL)
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
 	}
 }

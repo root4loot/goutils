@@ -1,55 +1,8 @@
 package hostutil
 
 import (
-	"fmt"
-	"net"
-	"strconv"
 	"strings"
 )
-
-// NormalizeHost takes a host input (either a domain name or hostname) and returns it in a standardized format.
-// It converts the input to lowercase, removes redundant ports (e.g., 443 for HTTPS and 80 for HTTP),
-// validates that the input is a valid fully qualified domain name (FQDN), and ensures that the hostname is properly formatted.
-func NormalizeHost(host string) (string, error) {
-	host = strings.TrimSpace(strings.ToLower(host))
-
-	if strings.Contains(host, "://") || strings.Contains(host, "/") {
-		return "", fmt.Errorf("input contains URL scheme or path: %s", host)
-	}
-
-	hostname, port, err := net.SplitHostPort(host)
-	if err != nil {
-		if strings.Contains(host, ":") {
-			return "", fmt.Errorf("failed to parse host input: %s", host)
-		}
-		hostname = host
-	}
-
-	if port != "" {
-		if _, err := strconv.Atoi(port); err != nil {
-			return "", fmt.Errorf("invalid port number: %s", port)
-		}
-	}
-
-	if net.ParseIP(hostname) == nil && !IsValidHostname(hostname) {
-		return "", fmt.Errorf("invalid hostname or IP address: %s", hostname)
-	}
-
-	if !strings.Contains(hostname, ".") {
-		return "", fmt.Errorf("invalid FQDN: %s", hostname)
-	}
-
-	switch port {
-	case "443", "80":
-		port = ""
-	}
-
-	if port != "" {
-		hostname = net.JoinHostPort(hostname, port)
-	}
-
-	return hostname, nil
-}
 
 // IsValidHostname checks if the given hostname is valid based on RFC 1123.
 func IsValidHostname(hostname string) bool {
