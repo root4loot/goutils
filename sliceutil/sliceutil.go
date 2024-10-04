@@ -1,8 +1,8 @@
 package sliceutil
 
-// AppendUnique appends unique strings from elems to slice, avoiding duplicates.
-func AppendUnique(slice []string, elems ...string) []string {
-	uniqueMap := make(map[string]bool)
+// AppendUnique appends unique elements from elems to slice, avoiding duplicates.
+func AppendUnique[T comparable](slice []T, elems ...T) []T {
+	uniqueMap := make(map[T]bool)
 	for _, v := range slice {
 		uniqueMap[v] = true
 	}
@@ -15,8 +15,8 @@ func AppendUnique(slice []string, elems ...string) []string {
 	return slice
 }
 
-// Contains checks if a slice contains a specified string.
-func Contains(slice []string, item string) bool {
+// Contains checks if a slice contains a specified element.
+func Contains[T comparable](slice []T, item T) bool {
 	for _, a := range slice {
 		if a == item {
 			return true
@@ -25,13 +25,8 @@ func Contains(slice []string, item string) bool {
 	return false
 }
 
-// Equal checks if a string is in a slice of strings.
-func Equal(v string, elems ...string) bool {
-	return Contains(elems, v)
-}
-
-// Remove deletes an item from a slice of strings.
-func Remove(slice []string, item string) []string {
+// Remove deletes an item from a slice of elements.
+func Remove[T comparable](slice []T, item T) []T {
 	for i, a := range slice {
 		if a == item {
 			return append(slice[:i], slice[i+1:]...)
@@ -40,28 +35,27 @@ func Remove(slice []string, item string) []string {
 	return slice
 }
 
-// DeleteEmpty removes empty strings from a slice.
-func DeleteEmpty(list []string) []string {
-	var r []string
-	for _, str := range list {
-		if str != "" {
-			r = append(r, str)
+// DeleteEmpty removes zero-value elements from a slice.
+func DeleteEmpty[T comparable](list []T) []T {
+	var r []T
+	for _, elem := range list {
+		var zeroValue T
+		if elem != zeroValue {
+			r = append(r, elem)
 		}
 	}
 	return r
 }
 
-// Unique returns a slice with only unique strings.
-func Unique(items []string) []string {
-	uniqueMap := make(map[string]bool)
+// Unique returns a slice with only unique elements, preserving the order of the first occurrence.
+func Unique[T comparable](items []T) []T {
+	uniqueMap := make(map[T]bool)
+	var uniqueItems []T
 	for _, item := range items {
-		if _, ok := uniqueMap[item]; !ok {
+		if !uniqueMap[item] {
 			uniqueMap[item] = true
+			uniqueItems = append(uniqueItems, item)
 		}
-	}
-	uniqueItems := make([]string, 0, len(uniqueMap))
-	for item := range uniqueMap {
-		uniqueItems = append(uniqueItems, item)
 	}
 	return uniqueItems
 }
