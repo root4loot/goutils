@@ -237,7 +237,21 @@ func IsIPRange(str string) bool {
 // IsValidIP checks if the provided IP address is valid.
 func IsValidIP(ip string) bool {
 	parsedIP := net.ParseIP(ip)
-	return parsedIP != nil
+	if parsedIP == nil {
+		return false
+	}
+
+	if strings.Count(ip, ".") == 3 {
+		segments := strings.Split(ip, ".")
+		for _, segment := range segments {
+			num, err := strconv.Atoi(segment)
+			if err != nil || num < 0 || num > 255 {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 // IsValidIPRange checks if the provided IP range is valid.
