@@ -231,6 +231,13 @@ func GetMediaExtensions() []string {
 
 // RemoveDefaultPort removes the default port from a URL based on its scheme.
 func RemoveDefaultPort(urlStr string) (string, error) {
+	isTempScheme := false
+
+	if !strings.Contains(urlStr, "://") {
+		urlStr = "temp://" + urlStr
+		isTempScheme = true
+	}
+
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", fmt.Errorf("invalid URL: %w", err)
@@ -265,6 +272,8 @@ func RemoveDefaultPort(urlStr string) (string, error) {
 		defaultPort = "443"
 	case "ftp":
 		defaultPort = "21"
+	case "temp":
+		defaultPort = ""
 	default:
 		return u.String(), nil
 	}
@@ -273,5 +282,10 @@ func RemoveDefaultPort(urlStr string) (string, error) {
 		u.Host = host
 	}
 
-	return u.String(), nil
+	finalURL := u.String()
+	if isTempScheme {
+		finalURL = strings.TrimPrefix(finalURL, "temp://")
+	}
+
+	return finalURL, nil
 }
