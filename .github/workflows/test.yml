@@ -1,4 +1,4 @@
-name: Test all
+name: Build
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_call:
 
 jobs:
   test:
@@ -26,5 +25,4 @@ jobs:
         run: go mod download
 
       - name: Run Tests
-        run: |
-          go list ./... | xargs -I {} sh -c 'go test -v {} || [ $? -eq 5 ]'
+        run: go test -v ./...
