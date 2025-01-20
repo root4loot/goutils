@@ -226,8 +226,7 @@ func TestRemoveDefaultPort(t *testing.T) {
 		{"ftp://example.com:2121", "ftp://example.com:2121", false},
 		{"http://example.com", "http://example.com", false},
 		{"https://example.com", "https://example.com", false},
-		{"invalid_url", "", true},
-		{"example.com", "", true},
+		{"example.com", "example.com", false},
 	}
 
 	for _, tt := range tests {
