@@ -60,9 +60,10 @@ type Label struct {
 	color  string
 }
 
-// Init initializes the global logger
+// Init initializes the global logger and sets the log level to Info.
 func Init(name string) {
 	log = NewLogger(name)
+	log.SetLevel(logrus.InfoLevel)
 }
 
 // Notify logs a message using a specified or global logger.
