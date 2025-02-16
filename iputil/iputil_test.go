@@ -358,7 +358,7 @@ func TestIsIPInRange(t *testing.T) {
 func TestReverseDNSLookup(t *testing.T) {
 	t.Run("valid IP", func(t *testing.T) {
 		ip := "8.8.8.8"
-		names, err := ReverseDNSLookup(ip)
+		names, err := GetPTRs(ip)
 		if err != nil {
 			t.Fatalf("ReverseDNSLookup() error = %v", err)
 		}

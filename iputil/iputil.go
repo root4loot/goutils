@@ -377,18 +377,29 @@ func IsIPInRange(ip string, ipRange string) bool {
 	return false
 }
 
-// ReverseDNSLookup performs a reverse DNS lookup on the provided IP address.
-func ReverseDNSLookup(ip string) ([]string, error) {
+// GetPTRs returns the PTR record for the given IP address.
+func GetPTRs(ip string) ([]string, error) {
 	names, err := net.LookupAddr(ip)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, name := range names {
-		names[i] = strings.TrimSuffix(name, ".")
+	var validNames []string
+	for _, name := range names {
+		trimmedName := strings.TrimSuffix(name, ".")
+
+		ips, err := net.LookupIP(trimmedName)
+		if err == nil {
+			for _, resolvedIP := range ips {
+				if resolvedIP.String() == ip {
+					validNames = append(validNames, trimmedName)
+					break
+				}
+			}
+		}
 	}
 
-	return names, nil
+	return validNames, nil
 }
 
 // calculateEndIP calculates the end IP address based on the given increment value.
