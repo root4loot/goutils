@@ -222,21 +222,22 @@ func TestRemoveDefaultPort(t *testing.T) {
 		{"https://example.com:443", "https://example.com", false},
 		{"http://example.com:8080", "http://example.com:8080", false},
 		{"https://example.com:8443", "https://example.com:8443", false},
-		{"ftp://example.com:21", "ftp://example.com", false},
-		{"ftp://example.com:2121", "ftp://example.com:2121", false},
 		{"http://example.com", "http://example.com", false},
 		{"https://example.com", "https://example.com", false},
 		{"example.com", "example.com", false},
+		{"http://[::1]:80", "http://[::1]", false},
+		{"https://[::1]:443", "https://[::1]", false},
+		{"http://[::1]:8080", "http://[::1]:8080", false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			result, err := RemoveDefaultPort(tt.input)
 			if (err != nil) != tt.hasError {
-				t.Errorf("expected error status %v, got %v (error: %v)", tt.hasError, (err != nil), err)
+				t.Fatalf("RemoveDefaultPort(%q): expected error status %v, got error: %v", tt.input, tt.hasError, err)
 			}
 			if result != tt.expected {
-				t.Errorf("expected %v, got %v", tt.expected, result)
+				t.Errorf("RemoveDefaultPort(%q): expected %q, got %q", tt.input, tt.expected, result)
 			}
 		})
 	}

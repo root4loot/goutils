@@ -229,63 +229,41 @@ func GetMediaExtensions() []string {
 	}
 }
 
-// RemoveDefaultPort removes the default port from a URL based on its scheme.
+// RemoveDefaultPort removes port 80 for HTTP and port 443 for HTTPS
 func RemoveDefaultPort(urlStr string) (string, error) {
-	isTempScheme := false
+	original := urlStr
+	addedScheme := false
 
 	if !strings.Contains(urlStr, "://") {
-		urlStr = "temp://" + urlStr
-		isTempScheme = true
+		urlStr = "http://" + urlStr
+		addedScheme = true
 	}
 
 	u, err := url.Parse(urlStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid URL: %w", err)
+		return "", fmt.Errorf("invalid URL %q: %w", original, err)
 	}
 
-	host := u.Host
-	var port string
-
-	if strings.Contains(u.Host, ":") {
-		host, port, err = net.SplitHostPort(u.Host)
-		if err != nil {
-			// Handle IPv6 addresses enclosed in brackets
-			if strings.HasPrefix(u.Host, "[") && strings.Contains(u.Host, "]") {
-				hostPort := strings.TrimPrefix(u.Host, "[")
-				hostPort = strings.Replace(hostPort, "]", "", 1)
-				host, port, err = net.SplitHostPort(hostPort)
-				host = "[" + host + "]"
-				if err != nil {
-					return "", fmt.Errorf("invalid host: %w", err)
-				}
-			} else {
-				return "", fmt.Errorf("invalid host: %w", err)
-			}
-		}
-	}
-
-	defaultPort := ""
+	var defaultPort string
 	switch u.Scheme {
 	case "http":
 		defaultPort = "80"
 	case "https":
 		defaultPort = "443"
-	case "ftp":
-		defaultPort = "21"
-	case "temp":
-		defaultPort = ""
-	default:
-		return u.String(), nil
 	}
 
-	if port == defaultPort {
+	if defaultPort != "" && u.Port() == defaultPort {
+		host := u.Hostname()
+		if ip := net.ParseIP(host); ip != nil && strings.Contains(host, ":") {
+			host = "[" + host + "]"
+		}
 		u.Host = host
 	}
 
-	finalURL := u.String()
-	if isTempScheme {
-		finalURL = strings.TrimPrefix(finalURL, "temp://")
+	result := u.String()
+	if addedScheme {
+		result = strings.TrimPrefix(result, "http://")
 	}
 
-	return finalURL, nil
+	return result, nil
 }
