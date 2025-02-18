@@ -230,20 +230,7 @@ func GetMediaExtensions() []string {
 }
 
 // RemoveDefaultPort removes port 80 for HTTP and port 443 for HTTPS
-func RemoveDefaultPort(urlStr string) (string, error) {
-	original := urlStr
-	addedScheme := false
-
-	if !strings.Contains(urlStr, "://") {
-		urlStr = "http://" + urlStr
-		addedScheme = true
-	}
-
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return "", fmt.Errorf("invalid URL %q: %w", original, err)
-	}
-
+func RemoveDefaultPort(u *url.URL) {
 	var defaultPort string
 	switch u.Scheme {
 	case "http":
@@ -259,6 +246,24 @@ func RemoveDefaultPort(urlStr string) (string, error) {
 		}
 		u.Host = host
 	}
+}
+
+// RemoveDefaultPortStr removes port 80 for HTTP and port 443 for HTTPS
+func RemoveDefaultPortStr(urlStr string) (string, error) {
+	original := urlStr
+	addedScheme := false
+
+	if !strings.Contains(urlStr, "://") {
+		urlStr = "http://" + urlStr
+		addedScheme = true
+	}
+
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid URL %q: %w", original, err)
+	}
+
+	RemoveDefaultPort(u)
 
 	result := u.String()
 	if addedScheme {
