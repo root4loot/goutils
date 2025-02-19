@@ -162,3 +162,49 @@ func WriteToFileAppend(filePath string, line string) error {
 
 	return writer.Flush()
 }
+
+func SaveJSONLines(filePath string, data interface{}) error {
+	dir := filepath.Dir(filePath)
+	if err := EnsureDir(dir); err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(append(jsonData, '\n'))
+	return err
+}
+
+func LoadJSONLines(filePath string) ([]map[string]interface{}, error) {
+	if !FileExists(filePath) {
+		return nil, fmt.Errorf("file %q does not exist", filePath)
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var results []map[string]interface{}
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		var item map[string]interface{}
+		if err := json.Unmarshal(scanner.Bytes(), &item); err != nil {
+			return nil, err
+		}
+		results = append(results, item)
+	}
+
+	return results, scanner.Err()
+}

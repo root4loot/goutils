@@ -180,3 +180,52 @@ func TestSerializeDeserialize(t *testing.T) {
 		t.Errorf("DeserializeFromFile() returned incorrect data: got %+v, want %+v", readData, writeData)
 	}
 }
+
+func TestSaveJSONLines(t *testing.T) {
+	// Temporary test file
+	testFile := "test_data.jsonl"
+	defer os.Remove(testFile)
+
+	data1 := map[string]interface{}{
+		"id":   "123",
+		"name": "test1",
+	}
+	data2 := map[string]interface{}{
+		"id":   "456",
+		"name": "test2",
+	}
+
+	err := SaveJSONLines(testFile, data1)
+	if err != nil {
+		t.Fatalf("Failed to save first JSON line: %v", err)
+	}
+
+	err = SaveJSONLines(testFile, data2)
+	if err != nil {
+		t.Fatalf("Failed to save second JSON line: %v", err)
+	}
+
+	results, err := LoadJSONLines(testFile)
+	if err != nil {
+		t.Fatalf("Failed to load JSON lines: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("Expected 2 entries, got %d", len(results))
+	}
+
+	if results[0]["id"] != "123" || results[0]["name"] != "test1" {
+		t.Errorf("Unexpected first entry: %v", results[0])
+	}
+
+	if results[1]["id"] != "456" || results[1]["name"] != "test2" {
+		t.Errorf("Unexpected second entry: %v", results[1])
+	}
+}
+
+func TestLoadJSONLines_FileNotExist(t *testing.T) {
+	_, err := LoadJSONLines("non_existent.jsonl")
+	if err == nil {
+		t.Fatal("Expected an error for a non-existent file, but got nil")
+	}
+}
