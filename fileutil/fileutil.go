@@ -230,3 +230,33 @@ func ListFiles(dirPath string) ([]string, error) {
 
 	return files, nil
 }
+
+// ReadFilesFromDir reads all files in a directory and returns a map of file names to their contents.
+// paths can be a relative or absolute.
+func ReadFilesFromDir(dirPath string) (map[string]string, error) {
+	if !FileExists(dirPath) {
+		return nil, fmt.Errorf("directory %q does not exist", dirPath)
+	}
+
+	dir, err := os.ReadDir(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	files := make(map[string]string)
+	for _, entry := range dir {
+		if entry.IsDir() {
+			continue
+		}
+
+		filePath := filepath.Join(dirPath, entry.Name())
+		fileData, err := os.ReadFile(filePath)
+		if err != nil {
+			return nil, err
+		}
+
+		files[entry.Name()] = string(fileData)
+	}
+
+	return files, nil
+}
