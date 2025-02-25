@@ -208,3 +208,25 @@ func LoadJSONLines(filePath string) ([]map[string]interface{}, error) {
 
 	return results, scanner.Err()
 }
+
+// ListFiles returns a list of files in a directory.
+func ListFiles(dirPath string) ([]string, error) {
+	if !FileExists(dirPath) {
+		return nil, fmt.Errorf("directory %q does not exist", dirPath)
+	}
+
+	dir, err := os.ReadDir(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var files []string
+	for _, entry := range dir {
+		if entry.IsDir() {
+			continue
+		}
+		files = append(files, entry.Name())
+	}
+
+	return files, nil
+}
