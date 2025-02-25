@@ -231,16 +231,22 @@ func ListFiles(dirPath string) ([]string, error) {
 	return files, nil
 }
 
+// DirExists checks whether a directory exists.
+func DirExists(dirPath string) bool {
+	info, err := os.Stat(dirPath)
+	return err == nil && info.IsDir()
+}
+
 // ReadFilesFromDir reads all files in a directory and returns a map of file names to their contents.
 // paths can be a relative or absolute.
 func ReadFilesFromDir(dirPath string) (map[string]string, error) {
-	if !FileExists(dirPath) {
+	if !DirExists(dirPath) {
 		return nil, fmt.Errorf("directory %q does not exist", dirPath)
 	}
 
 	dir, err := os.ReadDir(dirPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read directory %q: %w", dirPath, err)
 	}
 
 	files := make(map[string]string)
@@ -252,7 +258,7 @@ func ReadFilesFromDir(dirPath string) (map[string]string, error) {
 		filePath := filepath.Join(dirPath, entry.Name())
 		fileData, err := os.ReadFile(filePath)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read file %q: %w", filePath, err)
 		}
 
 		files[entry.Name()] = string(fileData)
