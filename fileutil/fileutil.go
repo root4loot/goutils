@@ -163,6 +163,28 @@ func WriteToFileAppend(filePath string, line string) error {
 	return writer.Flush()
 }
 
+// WriteJSONToFile writes JSON data to a file, creating the file if necessary.
+func WriteJSONToFile(filePath string, data interface{}) error {
+	dir := filepath.Dir(filePath)
+	if err := EnsureDir(dir); err != nil {
+		return fmt.Errorf("failed to ensure directory %q: %w", dir, err)
+	}
+
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open file %q for writing: %w", filePath, err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ") // Pretty-print for readability
+	if err := encoder.Encode(data); err != nil {
+		return fmt.Errorf("failed to encode JSON to file %q: %w", filePath, err)
+	}
+
+	return nil
+}
+
 func SaveJSONLines(filePath string, data interface{}) error {
 	dir := filepath.Dir(filePath)
 	if err := EnsureDir(dir); err != nil {

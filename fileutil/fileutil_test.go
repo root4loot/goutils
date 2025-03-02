@@ -1,6 +1,7 @@
 package fileutil
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -227,5 +228,37 @@ func TestLoadJSONLines_FileNotExist(t *testing.T) {
 	_, err := LoadJSONLines("non_existent.jsonl")
 	if err == nil {
 		t.Fatal("Expected an error for a non-existent file, but got nil")
+	}
+}
+
+func TestWriteJSONToFile(t *testing.T) {
+	testDir := "testdata"
+	testFile := filepath.Join(testDir, "test.json")
+	defer os.RemoveAll(testDir) // Cleanup after test
+
+	testData := map[string]string{"key": "value"}
+
+	err := WriteJSONToFile(testFile, testData)
+	if err != nil {
+		t.Fatalf("WriteJSONToFile failed: %v", err)
+	}
+
+	// Verify file exists
+	if !FileExists(testFile) {
+		t.Fatalf("Expected file %q to exist", testFile)
+	}
+
+	// Verify file contents
+	var readData map[string]string
+	err = DeserializeFromFile(testFile, &readData)
+	if err != nil {
+		t.Fatalf("Failed to read JSON from file: %v", err)
+	}
+
+	// Compare written and read data
+	expected, _ := json.Marshal(testData)
+	actual, _ := json.Marshal(readData)
+	if string(expected) != string(actual) {
+		t.Errorf("Expected %q but got %q", expected, actual)
 	}
 }
