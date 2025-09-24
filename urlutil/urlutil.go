@@ -190,6 +190,12 @@ func IsMediaExt(ext string) bool {
 	return false
 }
 
+// IsMediaExtension checks if a URL has a media file extension
+func IsMediaExtension(rawURL string) bool {
+	ext := GetExt(rawURL)
+	return IsMediaExt(ext)
+}
+
 // GetOrigin returns the origin of a URL.
 func GetOrigin(rawURL string) (string, error) {
 	u, err := url.Parse(rawURL)
@@ -223,9 +229,26 @@ func RemoveTrailingSlash(rawURL string) string {
 // GetMediaExtensions returns a slice of common media file extensions
 func GetMediaExtensions() []string {
 	return []string{
-		".png", ".jpg", ".jpeg", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".gif", ".ico", ".webp",
-		".mp4", ".webm", ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".flv", ".avi", ".mov",
-		".wmv", ".swf", ".mkv", ".m4v", ".3gp", ".3g2",
+		".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".svg", ".ico", ".cur",
+		".psd", ".ai", ".eps", ".raw", ".cr2", ".nef", ".orf", ".sr2", ".dng", ".heic", ".heif",
+		".avif", ".jxl", ".jp2", ".jpx", ".tga", ".pcx", ".dds", ".exr", ".hdr",
+		".mp4", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mkv", ".m4v", ".3gp", ".ogv",
+		".mpg", ".mpeg", ".m2v", ".m4p", ".m4b", ".f4v", ".f4p", ".f4a", ".f4b", ".ts", ".mts",
+		".m2ts", ".vob", ".rm", ".rmvb", ".asf", ".divx", ".xvid", ".mxf",
+		".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".opus", ".amr",
+		".aiff", ".au", ".ra", ".3ga", ".ac3", ".ape", ".caf", ".dts", ".m4r", ".mka", ".tak", ".tta", ".wv",
+		".mid", ".midi", ".mod", ".s3m", ".xm", ".it", ".gsm", ".voc", ".snd",
+		".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".lz", ".lzma", ".Z", ".cab", ".arj", ".lha", ".ace", ".zoo", ".arc", ".pak", ".pit", ".sit", ".sitx", ".sea", ".hqx",
+		".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".odt", ".ods", ".odp",
+		".rtf", ".pages", ".numbers", ".key",
+		".exe", ".msi", ".deb", ".rpm", ".dmg", ".pkg", ".app", ".run", ".bin", ".com", ".scr",
+		".bat", ".cmd", ".ps1", ".vbs", ".jar", ".war", ".ear",
+		".ttf", ".otf", ".woff", ".woff2", ".eot", ".fon", ".fnt",
+		".db", ".sqlite", ".sqlite3", ".mdb", ".accdb", ".dbf",
+		".iso", ".img", ".vdi", ".vmdk", ".vhd",
+		".dll", ".so", ".dylib", ".lib", ".a", ".o", ".obj",
+		".swf", ".fla", ".as", ".class", ".blend", ".max", ".3ds", ".fbx", ".obj", ".dae",
+		".sketch", ".indd",
 	}
 }
 
