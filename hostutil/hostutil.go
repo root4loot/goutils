@@ -108,3 +108,17 @@ func IsValidHost(host string) bool {
 
 	return IsValidIP(hostPart) || IsValidHostname(hostPart)
 }
+
+// IsValidHostWithPort checks if the given host is a valid hostname or IP address with a required port.
+func IsValidHostWithPort(hostWithPort string) bool {
+	hostPart, portPart, err := net.SplitHostPort(hostWithPort)
+	if err != nil {
+		return false
+	}
+
+	if !IsValidPort(portPart) {
+		return false
+	}
+
+	return IsValidIP(hostPart) || IsValidHostname(hostPart)
+}

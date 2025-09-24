@@ -90,3 +90,42 @@ func TestIsValidHost(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidHostWithPort(t *testing.T) {
+	tests := []struct {
+		hostWithPort string
+		valid        bool
+	}{
+		{"example.com:8080", true},
+		{"localhost:3000", true},
+		{"127.0.0.1:8080", true},
+		{"192.168.1.1:80", true},
+		{"[::1]:8080", true},
+		{"[2001:db8::ff00:42:8329]:9090", true},
+		{"example.com:1", true},
+		{"example.com:65535", true},
+		{"example.com", false},
+		{"localhost", false},
+		{"127.0.0.1", false},
+		{"::1", false},
+		{"example.com:0", false},
+		{"example.com:65536", false},
+		{"example.com:-1", false},
+		{"example.com:99999", false},
+		{"exa_mple.com:8080", false},
+		{"256.256.256.256:80", false},
+		{"example.com:abc", false},
+		{"example.com:", false},
+		{":8080", false},
+		{"", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.hostWithPort, func(t *testing.T) {
+			result := IsValidHostWithPort(tt.hostWithPort)
+			if result != tt.valid {
+				t.Errorf("IsValidHostWithPort(%q) = %v; want %v", tt.hostWithPort, result, tt.valid)
+			}
+		})
+	}
+}
