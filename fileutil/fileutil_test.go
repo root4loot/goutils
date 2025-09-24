@@ -201,26 +201,35 @@ func TestSaveJSONLines(t *testing.T) {
 		t.Fatalf("Failed to save first JSON line: %v", err)
 	}
 
-	err = SaveJSONLines(testFile, data2)
-	if err != nil {
-		t.Fatalf("Failed to save second JSON line: %v", err)
-	}
-
 	results, err := LoadJSONLines(testFile)
 	if err != nil {
-		t.Fatalf("Failed to load JSON lines: %v", err)
+		t.Fatalf("Failed to load JSON lines after first save: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("Expected 2 entries, got %d", len(results))
+	if len(results) != 1 {
+		t.Fatalf("Expected 1 entry after first save, got %d", len(results))
 	}
 
 	if results[0]["id"] != "123" || results[0]["name"] != "test1" {
 		t.Errorf("Unexpected first entry: %v", results[0])
 	}
 
-	if results[1]["id"] != "456" || results[1]["name"] != "test2" {
-		t.Errorf("Unexpected second entry: %v", results[1])
+	err = SaveJSONLines(testFile, data2)
+	if err != nil {
+		t.Fatalf("Failed to save second JSON line: %v", err)
+	}
+
+	results, err = LoadJSONLines(testFile)
+	if err != nil {
+		t.Fatalf("Failed to load JSON lines after second save: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Fatalf("Expected 1 entry after second save (overwrite), got %d", len(results))
+	}
+
+	if results[0]["id"] != "456" || results[0]["name"] != "test2" {
+		t.Errorf("Unexpected second entry: %v", results[0])
 	}
 }
 
